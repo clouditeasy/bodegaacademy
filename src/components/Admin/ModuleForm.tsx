@@ -10,7 +10,7 @@ interface ModuleFormProps {
 }
 
 export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -50,6 +50,12 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check if user is admin
+    if (!profile || profile.role !== 'admin') {
+      alert('Seuls les administrateurs peuvent créer/modifier des modules');
+      return;
+    }
+    
     if (questions.length === 0) {
       alert('Veuillez ajouter au moins une question au quiz');
       return;
@@ -65,6 +71,9 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         updated_at: new Date().toISOString()
       };
 
+      console.log('User profile:', profile);
+      console.log('Module data:', moduleData);
+
       if (module) {
         // Update existing module
         const { error } = await supabase
@@ -72,20 +81,34 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
           .update(moduleData)
           .eq('id', module.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error details:', error);
+          throw error;
+        }
       } else {
         // Create new module
         const { error } = await supabase
           .from('modules')
           .insert([moduleData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error details:', error);
+          throw error;
+        }
       }
 
       onSave();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving module:', error);
-      alert('Erreur lors de la sauvegarde du module');
+      let errorMessage = 'Erreur lors de la sauvegarde du module';
+      
+      if (error.code === '42501') {
+        errorMessage = 'Permissions insuffisantes pour créer/modifier des modules';
+      } else if (error.message) {
+        errorMessage += ': ' + error.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
