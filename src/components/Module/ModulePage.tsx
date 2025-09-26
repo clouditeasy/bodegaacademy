@@ -9,6 +9,22 @@ interface ModulePageProps {
   onBack: () => void;
 }
 
+// Fonction pour valider si l'URL vidéo est valide (Azure Blob Storage seulement)
+const isValidVideoUrl = (url: string): boolean => {
+  if (!url || url.trim() === '') return false;
+
+  // Vérifier si c'est une URL Azure Blob Storage valide
+  const azurePattern = /^https:\/\/[a-zA-Z0-9]+\.blob\.core\.windows\.net\//;
+
+  // Ou URLs directes vers des fichiers vidéo
+  const validPatterns = [
+    azurePattern,
+    /^https:\/\/.*\.(mp4|webm|avi|mov|mkv)(\?.*)?$/i,  // URLs directes vers vidéos
+  ];
+
+  return validPatterns.some(pattern => pattern.test(url));
+};
+
 export function ModulePage({ module, onBack }: ModulePageProps) {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState<'content' | 'quiz'>('content');
@@ -199,14 +215,18 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
       {/* Content */}
       <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 lg:p-8">
         <div className="prose prose-lg max-w-none">
-          {module.video_url && (
+          {module.video_url && isValidVideoUrl(module.video_url) && (
             <div className="mb-6 sm:mb-8">
-              <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Play className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm sm:text-base text-gray-600">Vidéo du module</p>
-                  <p className="text-xs sm:text-sm text-gray-500 truncate max-w-full">{module.video_url}</p>
-                </div>
+              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <video
+                  controls
+                  className="w-full h-full object-cover"
+                  poster=""
+                >
+                  <source src={module.video_url} type="video/mp4" />
+                  <source src={module.video_url} type="video/webm" />
+                  Votre navigateur ne supporte pas la lecture vidéo.
+                </video>
               </div>
             </div>
           )}

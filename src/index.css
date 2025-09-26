@@ -44,11 +44,64 @@ html {
 
 /* Better focus styles for mobile */
 @media (max-width: 768px) {
-  button:focus, 
-  input:focus, 
-  select:focus, 
+  button:focus,
+  input:focus,
+  select:focus,
   textarea:focus {
     outline: 2px solid #f97316;
     outline-offset: 2px;
   }
+}
+
+/* Disable text cursor and selection on non-editable elements */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Re-enable text selection for editable elements */
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""],
+.selectable,
+p.selectable,
+span.selectable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Ensure proper cursor for different elements */
+button,
+[role="button"],
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""] {
+  cursor: text !important;
+}
+
+/* Prevent text cursor on div and span elements that might be clickable */
+div:not([contenteditable]),
+span:not([contenteditable]),
+p:not([contenteditable]):not(.selectable) {
+  cursor: default;
+}
+
+/* Special handling for links */
+a,
+[role="link"] {
+  cursor: pointer !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }

@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Play, CheckCircle, Clock, Trophy, BookOpen, Target } from 'lucide-react';
-import { supabase, Module, UserProgress } from '../../lib/supabase';
+import { Play, CheckCircle, Clock, Trophy, BookOpen, Target, Star, AlertCircle, MapPin, Settings } from 'lucide-react';
+import { supabase, Module, UserProgress, UserProfile } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { getTrainingPathForJobRole } from '../../config/trainingPaths';
+import { ModuleCategoriesView } from '../Module/ModuleCategoriesView';
+import { CategoryModulesView } from '../Module/CategoryModulesView';
 
 interface ModuleWithProgress extends Module {
   progress?: UserProgress;
+  isRecommended?: boolean;
+  priority?: 'high' | 'medium' | 'low';
 }
 
 interface EmployeeDashboardProps {
@@ -12,8 +17,12 @@ interface EmployeeDashboardProps {
 }
 
 export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [modules, setModules] = useState<ModuleWithProgress[]>([]);
+  const [recommendedModules, setRecommendedModules] = useState<ModuleWithProgress[]>([]);
+  const [trainingPath, setTrainingPath] = useState<any>(null);
+  const [currentView, setCurrentView] = useState<'categories' | 'category' | 'modules'>('categories');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [stats, setStats] = useState({
     total: 0,
     completed: 0,
@@ -23,19 +32,30 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (user && userProfile) {
       fetchModulesAndProgress();
+      // Load training path for user's job role
+      const jobRole = userProfile.job_role || localStorage.getItem('pending_job_role');
+      if (jobRole) {
+        const path = getTrainingPathForJobRole(jobRole);
+        setTrainingPath(path);
+      }
     }
-  }, [user]);
+  }, [user, userProfile]);
 
   const fetchModulesAndProgress = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       // Fetch modules
       const { data: modulesData, error: modulesError } = await supabase
         .from('modules')
         .select('*')
         .eq('is_active', true)
-        .order('created_at', { ascending: true });
+        .order('order_index', { ascending: true });
 
       if (modulesError) throw modulesError;
 
@@ -43,17 +63,30 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
       const { data: progressData, error: progressError } = await supabase
         .from('user_progress')
         .select('*')
-        .eq('user_id', user!.id);
+        .eq('user_id', user.id);
 
       if (progressError) throw progressError;
 
-      // Combine data
-      const modulesWithProgress = modulesData.map(module => ({
+      // Filter and categorize modules based on user profile
+      const filteredModules = filterModulesForUser(modulesData, userProfile);
+      
+      // Combine data with progress
+      const modulesWithProgress = filteredModules.map(module => ({
         ...module,
         progress: progressData.find(p => p.module_id === module.id)
       }));
 
       setModules(modulesWithProgress);
+      
+      // Set recommended modules (mandatory + job-specific incomplete modules)
+      const recommended = modulesWithProgress
+        .filter(module => 
+          (module.is_mandatory || module.category === 'job_specific') && 
+          (!module.progress || module.progress.status !== 'completed')
+        )
+        .slice(0, 3);
+      
+      setRecommendedModules(recommended);
 
       // Calculate stats
       const completed = progressData.filter(p => p.status === 'completed').length;
@@ -62,7 +95,7 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
       const averageScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 
       setStats({
-        total: modulesData.length,
+        total: filteredModules.length,
         completed,
         inProgress,
         averageScore: Math.round(averageScore)
@@ -74,13 +107,42 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
     }
   };
 
+  const filterModulesForUser = (modules: Module[], profile: UserProfile | null) => {
+    if (!profile) return modules;
+
+    return modules.filter(module => {
+      // Always show welcome and general modules
+      if (module.category === 'welcome' || module.category === 'general') {
+        return true;
+      }
+
+      // Show mandatory modules
+      if (module.is_mandatory) {
+        return true;
+      }
+
+      // Show job-specific modules that match user's job role
+      if (module.category === 'job_specific') {
+        return module.target_job_roles?.includes(profile.job_role || '') ||
+               module.target_departments?.includes(profile.department || '');
+      }
+
+      // Show compliance modules
+      if (module.category === 'compliance') {
+        return true;
+      }
+
+      return false;
+    });
+  };
+
   const getStatusIcon = (progress?: UserProgress) => {
     if (!progress || progress.status === 'not_started') {
       return <Play className="h-5 w-5 text-gray-400" />;
     } else if (progress.status === 'completed') {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
     } else {
-      return <Clock className="h-5 w-5 text-black" />;
+      return <Clock className="h-5 w-5 text-orange-500" />;
     }
   };
 
@@ -97,18 +159,114 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
   const getButtonText = (progress?: UserProgress) => {
     if (!progress || progress.status === 'not_started') {
       return 'Commencer';
-    } else if (progress.status === 'completed') {
-      return 'Revoir';
     } else {
       return 'Continuer';
     }
   };
 
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setCurrentView('category');
+  };
+
+  const handleBackToCategories = () => {
+    setCurrentView('categories');
+    setSelectedCategory('');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
+    );
+  }
+
+  // Render categories view
+  if (currentView === 'categories') {
+    return (
+      <div>
+        {/* Stats Cards */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <div className="flex items-center">
+                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
+                <div className="ml-2 sm:ml-4 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500 truncate">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.total}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <div className="flex items-center">
+                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 flex-shrink-0" />
+                <div className="ml-2 sm:ml-4 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500 truncate">Terminés</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.completed}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <div className="flex items-center">
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 flex-shrink-0" />
+                <div className="ml-2 sm:ml-4 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500 truncate">En cours</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.inProgress}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6 col-span-2 lg:col-span-1">
+              <div className="flex items-center">
+                <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500 flex-shrink-0" />
+                <div className="ml-2 sm:ml-4 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500 truncate">Score moyen</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.averageScore}%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Overview */}
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Target className="h-5 w-5 text-orange-500" />
+              Votre progression
+            </h3>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div 
+                className="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${stats.total > 0 ? (stats.completed / stats.total) * 100 : 0}%` }}
+              />
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              {stats.completed} sur {stats.total} modules terminés ({stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%)
+            </p>
+          </div>
+        </div>
+
+        {/* Module Categories */}
+        <ModuleCategoriesView 
+          modules={modules} 
+          onCategorySelect={handleCategorySelect}
+          onModuleSelect={onSelectModule}
+        />
+      </div>
+    );
+  }
+
+  // Render category modules view
+  if (currentView === 'category') {
+    return (
+      <CategoryModulesView 
+        categoryId={selectedCategory}
+        modules={modules}
+        onBack={handleBackToCategories}
+        onModuleSelect={onSelectModule}
+      />
     );
   }
 
@@ -138,7 +296,7 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
 
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex items-center">
-            <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-black flex-shrink-0" />
+            <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 flex-shrink-0" />
             <div className="ml-2 sm:ml-4 min-w-0">
               <p className="text-xs sm:text-sm font-medium text-gray-500 truncate">En cours</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.inProgress}</p>
@@ -160,12 +318,12 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
       {/* Progress Overview */}
       <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
         <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-black" />
+          <Target className="h-5 w-5 text-orange-500" />
           Votre progression
         </h3>
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div 
-            className="bg-gradient-to-r from-black to-gray-800 h-3 rounded-full transition-all duration-300"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all duration-300"
             style={{ width: `${stats.total > 0 ? (stats.completed / stats.total) * 100 : 0}%` }}
           />
         </div>
@@ -173,6 +331,7 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
           {stats.completed} sur {stats.total} modules terminés ({stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%)
         </p>
       </div>
+
 
       {/* Modules List */}
       <div className="bg-white rounded-lg shadow">
@@ -189,15 +348,6 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
                     <h3 className="text-base sm:text-lg font-medium text-gray-900 flex-1 min-w-0">
                       {module.title}
                     </h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      module.progress?.status === 'completed' 
-                        ? 'bg-green-100 text-green-800'
-                        : module.progress?.status === 'in_progress'
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {getStatusText(module.progress)}
-                    </span>
                   </div>
                   <p className="text-sm sm:text-base text-gray-600 mb-3 line-clamp-2">{module.description}</p>
                   {module.progress && module.progress.score != null && (
@@ -212,7 +362,7 @@ export function EmployeeDashboard({ onSelectModule }: EmployeeDashboardProps) {
                 </div>
                 <button
                   onClick={() => onSelectModule(module)}
-                  className="bg-black text-white px-4 sm:px-6 py-2 sm:py-2 rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
+                  className="bg-orange-500 text-white px-4 sm:px-6 py-2 sm:py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-28"
                 >
                   {module.progress?.status === 'completed' ? (
                     <CheckCircle className="h-4 w-4" />
