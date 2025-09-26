@@ -104,10 +104,6 @@ export function ModuleCategoriesView({ modules, onCategorySelect, onModuleSelect
               <div className="flex items-center gap-4 mb-4 min-h-[4rem]">
                 <div className="text-4xl flex-shrink-0">{category.icon}</div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                    <BookOpen className="h-4 w-4" />
-                    <span>{category.moduleCount} module{category.moduleCount > 1 ? 's' : ''}</span>
-                  </div>
                   <h3 className="text-xl font-semibold text-gray-900 group-hover:text-orange-600 transition-colors leading-tight">
                     {category.name}
                   </h3>
