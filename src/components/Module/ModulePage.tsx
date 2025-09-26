@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Play, FileText, Award, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Play, FileText, Award, CheckCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { Module, UserProgress, supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { Quiz } from './Quiz';
+import { PDFViewer } from './PDFViewer';
 
 interface ModulePageProps {
   module: Module;
@@ -30,6 +31,8 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   const [currentView, setCurrentView] = useState<'content' | 'quiz'>('content');
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fullscreenPdf, setFullscreenPdf] = useState(false);
+  const [fullscreenPresentation, setFullscreenPresentation] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -111,26 +114,42 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   };
 
   const renderContent = (content: string) => {
+    if (!content || content.trim() === '') {
+      return null;
+    }
+
+    // Nettoyer le contenu des balises HTML et des espaces
+    const cleanContent = content
+      .replace(/<p><br><\/p>/g, '') // Supprimer explicitement <p><br></p>
+      .replace(/<p>\s*<br\s*\/?>\s*<\/p>/g, '') // Supprimer avec variations d'espaces
+      .replace(/<br\s*\/?>/g, '\n') // Convertir <br> en retours à la ligne
+      .replace(/<p>/g, '') // Supprimer les balises <p> ouvrantes
+      .replace(/<\/p>/g, '\n') // Convertir les balises </p> en retours à la ligne
+      .trim();
+
     // Simple markdown-like rendering
-    return content
+    return cleanContent
       .split('\n')
+      .filter(line => line.trim() !== '') // Filtrer les lignes vides dès le début
       .map((line, index) => {
-        if (line.startsWith('# ')) {
-          return <h1 key={index} className="text-3xl font-bold text-gray-900 mb-6 mt-8">{line.slice(2)}</h1>;
-        } else if (line.startsWith('## ')) {
-          return <h2 key={index} className="text-2xl font-semibold text-gray-800 mb-4 mt-6">{line.slice(3)}</h2>;
-        } else if (line.startsWith('### ')) {
-          return <h3 key={index} className="text-xl font-semibold text-gray-700 mb-3 mt-4">{line.slice(4)}</h3>;
-        } else if (line.startsWith('- ')) {
-          return <li key={index} className="ml-6 mb-2">{line.slice(2)}</li>;
-        } else if (line.match(/^\d+\. /)) {
-          return <li key={index} className="ml-6 mb-2 list-decimal">{line.replace(/^\d+\. /, '')}</li>;
-        } else if (line.startsWith('**') && line.endsWith('**')) {
-          return <p key={index} className="font-bold mb-3">{line.slice(2, -2)}</p>;
-        } else if (line.trim() === '') {
-          return null; // Ne rien retourner pour les lignes vides au lieu de <br>
+        const trimmedLine = line.trim();
+
+        if (trimmedLine === '') {
+          return null; // Ignorer les lignes vides
+        } else if (trimmedLine.startsWith('# ')) {
+          return <h1 key={index} className="text-3xl font-bold text-gray-900 mb-6 mt-8">{trimmedLine.slice(2)}</h1>;
+        } else if (trimmedLine.startsWith('## ')) {
+          return <h2 key={index} className="text-2xl font-semibold text-gray-800 mb-4 mt-6">{trimmedLine.slice(3)}</h2>;
+        } else if (trimmedLine.startsWith('### ')) {
+          return <h3 key={index} className="text-xl font-semibold text-gray-700 mb-3 mt-4">{trimmedLine.slice(4)}</h3>;
+        } else if (trimmedLine.startsWith('- ')) {
+          return <li key={index} className="ml-6 mb-2">{trimmedLine.slice(2)}</li>;
+        } else if (trimmedLine.match(/^\d+\. /)) {
+          return <li key={index} className="ml-6 mb-2 list-decimal">{trimmedLine.replace(/^\d+\. /, '')}</li>;
+        } else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+          return <p key={index} className="font-bold mb-3">{trimmedLine.slice(2, -2)}</p>;
         } else {
-          return <p key={index} className="mb-3 leading-relaxed">{line}</p>;
+          return <p key={index} className="mb-3 leading-relaxed">{trimmedLine}</p>;
         }
       })
       .filter(Boolean); // Filtrer les éléments null/undefined
@@ -169,31 +188,31 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
           <span className="sm:hidden">Retour</span>
         </button>
         
-        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 line-clamp-2">{module.title}</h1>
             <p className="text-base sm:text-lg text-gray-600 mb-4 line-clamp-3">{module.description}</p>
-            
+
             {progress && (
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  progress.status === 'completed' 
+                  progress.status === 'completed'
                     ? 'bg-green-100 text-green-800'
                     : progress.status === 'in_progress'
                     ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {progress.status === 'completed' ? 'Terminé' : 
+                  {progress.status === 'completed' ? 'Terminé' :
                    progress.status === 'in_progress' ? 'En cours' : 'Non commencé'}
                 </span>
-                
+
                 {progress.score !== null && (
                   <div className="flex items-center gap-2">
                     <Award className="h-4 w-4 text-yellow-500" />
                     <span className="text-xs sm:text-sm font-medium">Score: {progress.score}%</span>
                   </div>
                 )}
-                
+
                 {progress.attempts > 0 && (
                   <span className="text-xs sm:text-sm text-gray-500">
                     {progress.attempts} tentative{progress.attempts > 1 ? 's' : ''}
@@ -202,14 +221,6 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
               </div>
             )}
           </div>
-          
-          <button
-            onClick={() => setCurrentView('quiz')}
-            className="bg-gray-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-gray-900 transition-colors flex items-center gap-2 text-sm sm:text-base w-full lg:w-auto justify-center"
-          >
-            <Play className="h-4 w-4" />
-            {progress?.status === 'completed' ? 'Refaire le quiz' : 'Commencer le quiz'}
-          </button>
         </div>
       </div>
 
@@ -233,56 +244,112 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
           )}
 
           {module.pdf_url && (
-            <div className="mb-6 sm:mb-8">
-              <a
-                href={module.pdf_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border-2 border-transparent hover:border-blue-200"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-blue-900 text-sm sm:text-base mb-1">Document PDF</h3>
-                    <p className="text-blue-700 text-xs sm:text-sm">Cliquer pour ouvrir le document</p>
-                  </div>
-                  <div className="text-blue-500">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </div>
+            <div className={`transition-all duration-300 ${
+              fullscreenPdf
+                ? 'fixed inset-0 z-50 bg-black bg-opacity-75 p-4'
+                : 'mb-6 sm:mb-8'
+            }`}>
+              {!fullscreenPdf && (
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={() => setFullscreenPdf(true)}
+                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    title="Plein écran"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
                 </div>
-              </a>
+              )}
+
+              <div className="relative">
+                {fullscreenPdf && (
+                  <button
+                    onClick={() => setFullscreenPdf(false)}
+                    className="absolute top-2 right-2 z-10 p-2 bg-gray-900 bg-opacity-75 text-white rounded-lg hover:bg-opacity-90 transition-all"
+                    title="Quitter le plein écran"
+                  >
+                    <Minimize2 className="h-4 w-4" />
+                  </button>
+                )}
+
+                <iframe
+                  src={`${module.pdf_url}#toolbar=0&navpanes=0&scrollbar=1`}
+                  className={`w-full border rounded-lg ${
+                    fullscreenPdf ? 'h-[calc(100vh-2rem)]' : 'h-96 lg:h-[600px]'
+                  }`}
+                  title="Visionneuse PDF"
+                  frameBorder="0"
+                  loading="lazy"
+                />
+              </div>
+
+              {fullscreenPdf && (
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-50 -z-10"
+                  onClick={() => setFullscreenPdf(false)}
+                />
+              )}
             </div>
           )}
 
           {module.presentation_url && (
-            <div className="mb-6 sm:mb-8">
-              <a
-                href={module.presentation_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors border-2 border-transparent hover:border-purple-200"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 flex-shrink-0">
-                    <svg fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-purple-900 text-sm sm:text-base mb-1">
-                      Présentation {module.presentation_type === 'powerpoint' ? 'PowerPoint' : 'PDF'}
-                    </h3>
-                    <p className="text-purple-700 text-xs sm:text-sm">Cliquer pour ouvrir la présentation</p>
-                  </div>
-                  <div className="text-purple-500">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </div>
+            <div className={`transition-all duration-300 ${
+              fullscreenPresentation
+                ? 'fixed inset-0 z-50 bg-black bg-opacity-75 p-4'
+                : 'mb-6 sm:mb-8'
+            }`}>
+              {!fullscreenPresentation && (
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={() => setFullscreenPresentation(true)}
+                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    title="Plein écran"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
                 </div>
-              </a>
+              )}
+
+              <div className="relative">
+                {fullscreenPresentation && (
+                  <button
+                    onClick={() => setFullscreenPresentation(false)}
+                    className="absolute top-2 right-2 z-10 p-2 bg-gray-900 bg-opacity-75 text-white rounded-lg hover:bg-opacity-90 transition-all"
+                    title="Quitter le plein écran"
+                  >
+                    <Minimize2 className="h-4 w-4" />
+                  </button>
+                )}
+
+                {module.presentation_type === 'powerpoint' ? (
+                  <iframe
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(module.presentation_url)}`}
+                    className={`w-full border rounded-lg ${
+                      fullscreenPresentation ? 'h-[calc(100vh-2rem)]' : 'h-96 lg:h-[600px]'
+                    }`}
+                    title="Visionneuse PowerPoint"
+                    frameBorder="0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <iframe
+                    src={`${module.presentation_url}#toolbar=0&navpanes=0&scrollbar=1`}
+                    className={`w-full border rounded-lg ${
+                      fullscreenPresentation ? 'h-[calc(100vh-2rem)]' : 'h-96 lg:h-[600px]'
+                    }`}
+                    title="Visionneuse de présentation"
+                    frameBorder="0"
+                    loading="lazy"
+                  />
+                )}
+              </div>
+
+              {fullscreenPresentation && (
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-50 -z-10"
+                  onClick={() => setFullscreenPresentation(false)}
+                />
+              )}
             </div>
           )}
 
