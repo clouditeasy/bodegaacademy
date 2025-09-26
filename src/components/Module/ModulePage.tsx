@@ -128,11 +128,12 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
         } else if (line.startsWith('**') && line.endsWith('**')) {
           return <p key={index} className="font-bold mb-3">{line.slice(2, -2)}</p>;
         } else if (line.trim() === '') {
-          return <br key={index} />;
+          return null; // Ne rien retourner pour les lignes vides au lieu de <br>
         } else {
           return <p key={index} className="mb-3 leading-relaxed">{line}</p>;
         }
-      });
+      })
+      .filter(Boolean); // Filtrer les éléments null/undefined
   };
 
   if (loading) {
@@ -232,14 +233,56 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
           )}
 
           {module.pdf_url && (
-            <div className="mb-6 sm:mb-8 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-blue-900 text-sm sm:text-base">Document PDF</h3>
-                  <p className="text-blue-700 text-xs sm:text-sm truncate">{module.pdf_url}</p>
+            <div className="mb-6 sm:mb-8">
+              <a
+                href={module.pdf_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border-2 border-transparent hover:border-blue-200"
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-blue-900 text-sm sm:text-base mb-1">Document PDF</h3>
+                    <p className="text-blue-700 text-xs sm:text-sm">Cliquer pour ouvrir le document</p>
+                  </div>
+                  <div className="text-blue-500">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
+              </a>
+            </div>
+          )}
+
+          {module.presentation_url && (
+            <div className="mb-6 sm:mb-8">
+              <a
+                href={module.presentation_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors border-2 border-transparent hover:border-purple-200"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 flex-shrink-0">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-purple-900 text-sm sm:text-base mb-1">
+                      Présentation {module.presentation_type === 'powerpoint' ? 'PowerPoint' : 'PDF'}
+                    </h3>
+                    <p className="text-purple-700 text-xs sm:text-sm">Cliquer pour ouvrir la présentation</p>
+                  </div>
+                  <div className="text-purple-500">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </div>
+                </div>
+              </a>
             </div>
           )}
 
