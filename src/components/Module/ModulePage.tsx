@@ -118,41 +118,13 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
       return null;
     }
 
-    // Nettoyer le contenu des balises HTML et des espaces
-    const cleanContent = content
-      .replace(/<p><br><\/p>/g, '') // Supprimer explicitement <p><br></p>
-      .replace(/<p>\s*<br\s*\/?>\s*<\/p>/g, '') // Supprimer avec variations d'espaces
-      .replace(/<br\s*\/?>/g, '\n') // Convertir <br> en retours à la ligne
-      .replace(/<p>/g, '') // Supprimer les balises <p> ouvrantes
-      .replace(/<\/p>/g, '\n') // Convertir les balises </p> en retours à la ligne
-      .trim();
-
-    // Simple markdown-like rendering
-    return cleanContent
-      .split('\n')
-      .filter(line => line.trim() !== '') // Filtrer les lignes vides dès le début
-      .map((line, index) => {
-        const trimmedLine = line.trim();
-
-        if (trimmedLine === '') {
-          return null; // Ignorer les lignes vides
-        } else if (trimmedLine.startsWith('# ')) {
-          return <h1 key={index} className="text-3xl font-bold text-gray-900 mb-6 mt-8">{trimmedLine.slice(2)}</h1>;
-        } else if (trimmedLine.startsWith('## ')) {
-          return <h2 key={index} className="text-2xl font-semibold text-gray-800 mb-4 mt-6">{trimmedLine.slice(3)}</h2>;
-        } else if (trimmedLine.startsWith('### ')) {
-          return <h3 key={index} className="text-xl font-semibold text-gray-700 mb-3 mt-4">{trimmedLine.slice(4)}</h3>;
-        } else if (trimmedLine.startsWith('- ')) {
-          return <li key={index} className="ml-6 mb-2">{trimmedLine.slice(2)}</li>;
-        } else if (trimmedLine.match(/^\d+\. /)) {
-          return <li key={index} className="ml-6 mb-2 list-decimal">{trimmedLine.replace(/^\d+\. /, '')}</li>;
-        } else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-          return <p key={index} className="font-bold mb-3">{trimmedLine.slice(2, -2)}</p>;
-        } else {
-          return <p key={index} className="mb-3 leading-relaxed">{trimmedLine}</p>;
-        }
-      })
-      .filter(Boolean); // Filtrer les éléments null/undefined
+    // Le contenu est déjà en HTML (créé avec Quill.js), on l'affiche directement
+    return (
+      <div
+        className="ql-editor"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
   };
 
   if (loading) {

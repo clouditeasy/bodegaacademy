@@ -105,3 +105,38 @@ a,
   -ms-user-select: none;
   user-select: none;
 }
+
+/* Styles pour l'affichage du contenu Quill en mode lecture */
+.ql-editor {
+  padding: 0;
+  overflow: visible;
+  line-height: 1.75;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.ql-editor p,
+.ql-editor ol,
+.ql-editor ul,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.ql-editor strong {
+  font-weight: 600;
+}
+
+.ql-editor em {
+  font-style: italic;
+}
+
+.ql-editor u {
+  text-decoration: underline;
+}
