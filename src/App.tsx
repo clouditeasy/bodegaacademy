@@ -23,34 +23,37 @@ function App() {
 
   const { user, userProfile, loading } = authState;
 
-  if (loading) {
-    console.log('[App] Loading state...');
+  console.log('[App] Wrapping entire app in LanguageProvider');
 
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <img
-            src="/logo-bodega.jpg"
-            alt="Bodega Academy Logo"
-            className="w-20 h-20 mx-auto mb-4 rounded-lg animate-pulse"
-          />
-          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || !userProfile) {
-    console.log('[App] Rendering AuthPage');
-    return <AuthPage />;
-  }
-
-  console.log('[App] Rendering MainLayout with LanguageProvider');
   return (
     <LanguageProvider>
-      <Router>
-        <MainLayout />
-      </Router>
+      {loading ? (
+        <>
+          {console.log('[App] Loading state...')}
+          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div className="text-center">
+              <img
+                src="/logo-bodega.jpg"
+                alt="Bodega Academy Logo"
+                className="w-20 h-20 mx-auto mb-4 rounded-lg animate-pulse"
+              />
+              <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+          </div>
+        </>
+      ) : !user || !userProfile ? (
+        <>
+          {console.log('[App] Rendering AuthPage')}
+          <AuthPage />
+        </>
+      ) : (
+        <>
+          {console.log('[App] Rendering MainLayout')}
+          <Router>
+            <MainLayout />
+          </Router>
+        </>
+      )}
     </LanguageProvider>
   );
 }
