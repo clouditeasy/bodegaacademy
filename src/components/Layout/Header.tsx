@@ -46,7 +46,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
             {/* Language Toggle Button */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 active:bg-gray-900"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 transition-colors focus:outline-none active:bg-gray-900"
               title={language === 'fr' ? 'تحويل إلى العربية' : 'Passer au français'}
             >
               <Languages className="h-5 w-5 text-white" />
