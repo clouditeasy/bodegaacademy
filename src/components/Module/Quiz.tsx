@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, XCircle, Trophy, RotateCcw } from 'lucide-react';
 import { QuizQuestion } from '../../lib/supabase';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface QuizProps {
   questions: QuizQuestion[];
@@ -13,10 +14,22 @@ interface QuizProps {
 
 export function Quiz({ questions, onComplete, onBack, previousScore, attempts }: QuizProps) {
   const { t } = useTranslation();
+  const { language } = useLanguage();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
+
+  // Helper function to get question/options based on language with fallback
+  const getQuestionText = (q: QuizQuestion) => {
+    return language === 'ar' && q.question_ar ? q.question_ar : q.question;
+  };
+
+  const getOptions = (q: QuizQuestion) => {
+    return language === 'ar' && q.options_ar && q.options_ar.length > 0
+      ? q.options_ar
+      : q.options;
+  };
 
   const handleAnswerSelect = (answerIndex: number) => {
     const newAnswers = [...answers];
@@ -132,14 +145,16 @@ export function Quiz({ questions, onComplete, onBack, previousScore, attempts }:
                         <XCircle className="h-5 w-5 text-red-500 mt-1" />
                       )}
                       <div className="flex-1">
-                        <p className="font-medium mb-2">{index + 1}. {question.question}</p>
-                        <div className="space-y-1 text-sm">
+                        <p className="font-medium mb-2" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                          {index + 1}. {getQuestionText(question)}
+                        </p>
+                        <div className="space-y-1 text-sm" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                           <p className={`${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                            {t('quiz.your_answer')} {question.options[userAnswer] || t('quiz.no_answer')}
+                            {t('quiz.your_answer')} {getOptions(question)[userAnswer] || t('quiz.no_answer')}
                           </p>
                           {!isCorrect && (
                             <p className="text-green-700">
-                              {t('quiz.correct_answer')} {question.options[question.correct]}
+                              {t('quiz.correct_answer')} {getOptions(question)[question.correct]}
                             </p>
                           )}
                         </div>
@@ -209,12 +224,12 @@ export function Quiz({ questions, onComplete, onBack, previousScore, attempts }:
 
       <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6">
-            {question.question}
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+            {getQuestionText(question)}
           </h2>
-          
+
           <div className="space-y-3">
-            {question.options.map((option, index) => (
+            {getOptions(question).map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(index)}
@@ -223,6 +238,7 @@ export function Quiz({ questions, onComplete, onBack, previousScore, attempts }:
                     ? 'border-orange-500 bg-orange-50 text-orange-900'
                     : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
                 }`}
+                dir={language === 'ar' ? 'rtl' : 'ltr'}
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-4 h-4 rounded-full border-2 ${

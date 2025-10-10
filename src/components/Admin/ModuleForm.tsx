@@ -32,9 +32,12 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     description_ar: '',
     content_ar: '',
     video_url: '',
+    video_url_ar: '',
     pdf_url: '',
     presentation_url: '',
+    presentation_url_ar: '',
     presentation_type: '' as 'pdf' | 'powerpoint' | '',
+    presentation_type_ar: '' as 'pdf' | 'powerpoint' | '',
     is_active: true,
     training_path_id: '',
     order_index: 0
@@ -56,9 +59,12 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         description_ar: (module as any).description_ar || '',
         content_ar: (module as any).content_ar || '',
         video_url: module.video_url || '',
+        video_url_ar: (module as any).video_url_ar || '',
         pdf_url: module.pdf_url || '',
         presentation_url: module.presentation_url || '',
+        presentation_url_ar: (module as any).presentation_url_ar || '',
         presentation_type: module.presentation_type || '',
+        presentation_type_ar: (module as any).presentation_type_ar || '',
         is_active: module.is_active,
         training_path_id: module.training_path_id || '',
         order_index: module.order_index || 0
@@ -77,9 +83,12 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         description_ar: '',
         content_ar: '',
         video_url: '',
+        video_url_ar: '',
         pdf_url: '',
         presentation_url: '',
+        presentation_url_ar: '',
         presentation_type: '',
+        presentation_type_ar: '',
         is_active: true,
         training_path_id: '',
         order_index: 0
@@ -177,7 +186,9 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
   const addQuestion = () => {
     setQuestions([...questions, {
       question: '',
+      question_ar: '',
       options: ['', '', '', ''],
+      options_ar: ['', '', '', ''],
       correct: 0
     }]);
   };
@@ -194,12 +205,25 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     setQuestions(updatedQuestions);
   };
 
+  const updateOptionAr = (questionIndex: number, optionIndex: number, value: string) => {
+    const updatedQuestions = [...questions];
+    if (!updatedQuestions[questionIndex].options_ar) {
+      updatedQuestions[questionIndex].options_ar = ['', '', '', ''];
+    }
+    updatedQuestions[questionIndex].options_ar![optionIndex] = value;
+    setQuestions(updatedQuestions);
+  };
+
   const removeQuestion = (index: number) => {
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
   const handleVideoUploaded = (url: string) => {
     setFormData(prev => ({ ...prev, video_url: url }));
+  };
+
+  const handleVideoUploadedAr = (url: string) => {
+    setFormData(prev => ({ ...prev, video_url_ar: url }));
   };
 
   const handleRemoveVideo = async () => {
@@ -228,11 +252,45 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     }
   };
 
+  const handleRemoveVideoAr = async () => {
+    // Mettre à jour le state local
+    setFormData(prev => ({ ...prev, video_url_ar: '' }));
+
+    // Si on édite un module existant, sauvegarder immédiatement
+    if (module && user) {
+      try {
+        const { error } = await supabase
+          .from('modules')
+          .update({
+            video_url_ar: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', module.id);
+
+        if (error) throw error;
+        console.log('Vidéo arabe supprimée de la base de données');
+
+        // Notifier le parent que le module a été mis à jour
+        onSave();
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du module:', error);
+      }
+    }
+  };
+
   const handlePresentationUploaded = (url: string, type: 'pdf' | 'powerpoint') => {
     setFormData(prev => ({
       ...prev,
       presentation_url: url,
       presentation_type: type
+    }));
+  };
+
+  const handlePresentationUploadedAr = (url: string, type: 'pdf' | 'powerpoint') => {
+    setFormData(prev => ({
+      ...prev,
+      presentation_url_ar: url,
+      presentation_type_ar: type
     }));
   };
 
@@ -267,12 +325,43 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     }
   };
 
+  const handleRemovePresentationAr = async () => {
+    // Mettre à jour le state local
+    setFormData(prev => ({
+      ...prev,
+      presentation_url_ar: '',
+      presentation_type_ar: ''
+    }));
+
+    // Si on édite un module existant, sauvegarder immédiatement
+    if (module && user) {
+      try {
+        const { error} = await supabase
+          .from('modules')
+          .update({
+            presentation_url_ar: null,
+            presentation_type_ar: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', module.id);
+
+        if (error) throw error;
+        console.log('Présentation arabe supprimée de la base de données');
+
+        // Notifier le parent que le module a été mis à jour
+        onSave();
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du module:', error);
+      }
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <button
           onClick={onCancel}
-          className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
           <ArrowLeft className="h-5 w-5" />
           {t('module_form.back_to_list')}
@@ -346,7 +435,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    {t('module_form.video_optional')}
+                    {t('module_form.video_optional')} (Français)
                   </label>
                   <VideoUpload
                     onVideoUploaded={handleVideoUploaded}
@@ -357,7 +446,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    {t('module_form.presentation_optional')}
+                    {t('module_form.presentation_optional')} (Français)
                   </label>
                   <PresentationUpload
                     onPresentationUploaded={handlePresentationUploaded}
@@ -401,31 +490,25 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    {t('module_form.video_optional')}
+                    {t('module_form.video_optional')} (عربية)
                   </label>
                   <VideoUpload
-                    onVideoUploaded={handleVideoUploaded}
-                    currentVideoUrl={formData.video_url}
-                    onRemoveVideo={handleRemoveVideo}
+                    onVideoUploaded={handleVideoUploadedAr}
+                    currentVideoUrl={formData.video_url_ar}
+                    onRemoveVideo={handleRemoveVideoAr}
                   />
-                  <p className="text-xs text-gray-500 mt-2" dir="rtl">
-                    {t('module_form.same_video_both_languages')}
-                  </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    {t('module_form.presentation_optional')}
+                    {t('module_form.presentation_optional')} (عربية)
                   </label>
                   <PresentationUpload
-                    onPresentationUploaded={handlePresentationUploaded}
-                    currentPresentationUrl={formData.presentation_url}
-                    currentPresentationType={formData.presentation_type as 'pdf' | 'powerpoint' | undefined}
-                    onRemovePresentation={handleRemovePresentation}
+                    onPresentationUploaded={handlePresentationUploadedAr}
+                    currentPresentationUrl={formData.presentation_url_ar}
+                    currentPresentationType={formData.presentation_type_ar as 'pdf' | 'powerpoint' | undefined}
+                    onRemovePresentation={handleRemovePresentationAr}
                   />
-                  <p className="text-xs text-gray-500 mt-2" dir="rtl">
-                    {t('module_form.same_presentation_both_languages')}
-                  </p>
                 </div>
               </>
             )}
@@ -556,6 +639,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
             </label>
             <div className="border border-gray-300 rounded-lg overflow-hidden">
               <RichTextEditor
+                key={`editor-${languageTab}`}
                 value={languageTab === 'fr' ? formData.content : formData.content_ar}
                 onChange={(content) => setFormData(prev => languageTab === 'fr' ? ({ ...prev, content }) : ({ ...prev, content_ar: content }))}
                 placeholder={languageTab === 'fr' ? t('module_form.content_placeholder_fr') : t('module_form.content_placeholder_ar')}
@@ -579,7 +663,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
             <button
               type="button"
               onClick={addQuestion}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+              className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
               {t('module_form.add_question')}
@@ -606,53 +690,132 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                     </button>
                   </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('module_form.question_text')}
-                      </label>
-                      <input
-                        type="text"
-                        value={question.question}
-                        onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder={t('module_form.question_placeholder')}
-                        required
-                      />
-                    </div>
+                  {/* Language Tabs for Questions */}
+                  <div className="flex gap-2 border-b mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setLanguageTab('fr')}
+                      className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                        languageTab === 'fr'
+                          ? 'border-b-2 border-orange-500 text-orange-600'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Français
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLanguageTab('ar')}
+                      className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                        languageTab === 'ar'
+                          ? 'border-b-2 border-orange-500 text-orange-600'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      عربية
+                    </button>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('module_form.answer_options')}
-                      </label>
-                      <div className="space-y-2">
-                        {question.options.map((option, oIndex) => (
-                          <div key={oIndex} className="flex items-center gap-3">
-                            <input
-                              type="radio"
-                              name={`correct-${qIndex}`}
-                              checked={question.correct === oIndex}
-                              onChange={() => updateQuestion(qIndex, 'correct', oIndex)}
-                              className="h-4 w-4 text-orange-600 focus:ring-orange-500"
-                            />
-                            <input
-                              type="text"
-                              value={option}
-                              onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                              placeholder={`${t('module_form.option_placeholder')} ${oIndex + 1}`}
-                              required
-                            />
-                            <span className="text-xs text-gray-500 w-20">
-                              {question.correct === oIndex ? t('module_form.correct_option') : ''}
-                            </span>
+                  <div className="space-y-4">
+                    {languageTab === 'fr' ? (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('module_form.question_text')} (Français)
+                          </label>
+                          <input
+                            type="text"
+                            value={question.question}
+                            onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            placeholder={t('module_form.question_placeholder')}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('module_form.answer_options')} (Français)
+                          </label>
+                          <div className="space-y-2">
+                            {question.options.map((option, oIndex) => (
+                              <div key={oIndex} className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  name={`correct-${qIndex}`}
+                                  checked={question.correct === oIndex}
+                                  onChange={() => updateQuestion(qIndex, 'correct', oIndex)}
+                                  className="h-4 w-4 text-orange-600 focus:ring-orange-500"
+                                />
+                                <input
+                                  type="text"
+                                  value={option}
+                                  onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                  placeholder={`${t('module_form.option_placeholder')} ${oIndex + 1}`}
+                                  required
+                                />
+                                <span className="text-xs text-gray-500 w-20">
+                                  {question.correct === oIndex ? t('module_form.correct_option') : ''}
+                                </span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {t('module_form.select_correct_help')}
-                      </p>
-                    </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {t('module_form.select_correct_help')}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('module_form.question_text')} (عربية)
+                          </label>
+                          <input
+                            type="text"
+                            value={question.question_ar || ''}
+                            onChange={(e) => updateQuestion(qIndex, 'question_ar', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            placeholder="السؤال بالعربية"
+                            dir="rtl"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('module_form.answer_options')} (عربية)
+                          </label>
+                          <div className="space-y-2">
+                            {(question.options_ar || ['', '', '', '']).map((option, oIndex) => (
+                              <div key={oIndex} className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  name={`correct-ar-${qIndex}`}
+                                  checked={question.correct === oIndex}
+                                  onChange={() => updateQuestion(qIndex, 'correct', oIndex)}
+                                  className="h-4 w-4 text-orange-600 focus:ring-orange-500"
+                                />
+                                <input
+                                  type="text"
+                                  value={option}
+                                  onChange={(e) => updateOptionAr(qIndex, oIndex, e.target.value)}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                  placeholder={`الخيار ${oIndex + 1}`}
+                                  dir="rtl"
+                                />
+                                <span className="text-xs text-gray-500 w-20">
+                                  {question.correct === oIndex ? '✓' : ''}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2" dir="rtl">
+                            اختر الإجابة الصحيحة
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -674,7 +837,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
             <Save className="h-4 w-4" />
             {loading ? t('module_form.saving') : t('module_form.save')}

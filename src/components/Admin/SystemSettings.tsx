@@ -92,7 +92,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
           <button
             onClick={saveSettings}
             disabled={loading}
-            className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center gap-2"
+            className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center gap-2"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

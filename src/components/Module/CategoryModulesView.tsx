@@ -148,7 +148,7 @@ export function CategoryModulesView({
         <div className="flex items-center gap-4">
           {category && (
             <div className={`px-3 py-1 rounded-full text-white text-sm ${category.color}`}>
-              {categoryModules.length} modules
+              {categoryModules.length} {t('category_modules')}
             </div>
           )}
         </div>

@@ -182,7 +182,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center min-h-96">
-          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -226,7 +226,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
           
           <button
             onClick={() => setShowAddForm(true)}
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+            className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             Nouveau parcours
@@ -369,7 +369,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
             <button
               onClick={handleAddCategory}
               disabled={saving === 'new'}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {saving === 'new' ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -519,7 +519,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                     <button
                       onClick={() => handleSaveCategory(category.id)}
                       disabled={saving === category.id}
-                      className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                     >
                       {saving === category.id ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -595,7 +595,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
             </p>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+              className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
               Créer un parcours
             </button>

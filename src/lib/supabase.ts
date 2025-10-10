@@ -43,9 +43,12 @@ export type Module = {
   description: string;
   content: string;
   video_url?: string;
+  video_url_ar?: string;  // Vidéo arabe
   pdf_url?: string;
   presentation_url?: string;
+  presentation_url_ar?: string;  // Présentation arabe
   presentation_type?: 'pdf' | 'powerpoint';
+  presentation_type_ar?: 'pdf' | 'powerpoint';  // Type présentation arabe
   quiz_questions: QuizQuestion[];
   created_by: string;
   created_at: string;
@@ -61,7 +64,9 @@ export type Module = {
 
 export type QuizQuestion = {
   question: string;
+  question_ar?: string;  // Question en arabe
   options: string[];
+  options_ar?: string[];  // Options en arabe
   correct: number;
 };
 

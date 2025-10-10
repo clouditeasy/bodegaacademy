@@ -192,7 +192,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
           
           <button
             onClick={() => setShowCreateForm(true)}
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+            className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             Nouvel utilisateur
@@ -353,7 +353,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+                className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
               >
                 {loading ? 'Création...' : 'Créer'}
               </button>

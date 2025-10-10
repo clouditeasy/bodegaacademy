@@ -35,9 +35,9 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
             />
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
-                Bodega Academy
+                {t('app_name')}
               </h1>
-              <p className="text-xs text-gray-500 hidden sm:block">Plateforme de formation</p>
+              <p className="text-xs text-gray-500 hidden sm:block">{t('app_tagline')}</p>
             </div>
           </div>
 

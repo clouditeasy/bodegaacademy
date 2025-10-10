@@ -1,5 +1,7 @@
 {
   "fr": {
+    "app_name": "Bodega Academy",
+    "app_tagline": "Plateforme de formation",
     "dashboard": "Tableau de bord",
     "modules": "Modules",
     "training_paths": "Parcours de formation",
@@ -428,9 +430,36 @@
       "option_placeholder": "Option",
       "info_title": "💡 Info :",
       "sequential_unlock": "Les pages sont déverrouillées séquentiellement. L'employé doit terminer la page 1 (et son quiz si présent) avant d'accéder à la page 2, etc."
+    },
+    "upload": {
+      "video_uploaded": "Vidéo téléchargée sur Azure",
+      "video_ready": "Fichier prêt pour l'intégration",
+      "remove_video": "Supprimer la vidéo",
+      "azure_not_configured": "Azure Blob Storage non configuré",
+      "azure_config_help": "Ajoutez les variables VITE_AZURE_STORAGE_ACCOUNT et VITE_AZURE_SAS_TOKEN à votre fichier .env",
+      "upload_in_progress": "Téléchargement en cours...",
+      "percent_complete": "terminé",
+      "upload_video": "Télécharger une vidéo",
+      "drag_drop_or_click": "Glissez-déposez ou cliquez pour sélectionner",
+      "max_file_size": "Max 4GB",
+      "supported_formats": "Formats supportés:",
+      "max_size": "Taille maximale: 4GB (Azure Blob Storage)",
+      "optimization_tips": "💡 Conseils d'optimisation :",
+      "recommended_resolution": "Résolution recommandée : 1080p (1920x1080)",
+      "recommended_codec": "Codec recommandé : H.264 pour une compatibilité maximale",
+      "bitrate_tip": "Bitrate : 2-8 Mbps selon la qualité souhaitée",
+      "large_files_supported": "Les fichiers volumineux sont supportés (jusqu'à 4GB)",
+      "presentation_uploaded": "Présentation téléchargée sur Azure",
+      "presentation_ready": "Fichier prêt pour l'intégration",
+      "remove_presentation": "Supprimer la présentation",
+      "upload_presentation": "Télécharger une présentation",
+      "pdf_or_powerpoint": "PDF ou PowerPoint • Max 200MB",
+      "presentation_formats": "Formats : PDF (recommandé) ou PowerPoint (.pptx)"
     }
   },
   "ar": {
+    "app_name": "Bodega Academy",
+    "app_tagline": "منصة التكوين",
     "dashboard": "لوحة القيادة",
     "modules": "الوحدات",
     "training_paths": "مسارات التكوين",
@@ -859,6 +888,31 @@
       "option_placeholder": "خيار",
       "info_title": "💡 معلومة:",
       "sequential_unlock": "الصفحات كيتفتحو بالترتيب. الموظف خصو يكمل الصفحة 1 (و الاختبار ديالها إلا كان) قبل ما يدخل للصفحة 2، و هكذا."
+    },
+    "upload": {
+      "video_uploaded": "تم رفع الفيديو على Azure",
+      "video_ready": "الفيديو جاهز للاستعمال",
+      "remove_video": "حذف الفيديو",
+      "azure_not_configured": "Azure Blob Storage ماشي مكونف",
+      "azure_config_help": "زيد المتغيرات VITE_AZURE_STORAGE_ACCOUNT و VITE_AZURE_SAS_TOKEN لملف .env ديالك",
+      "upload_in_progress": "جاري الرفع...",
+      "percent_complete": "مكمل",
+      "upload_video": "رفع فيديو",
+      "drag_drop_or_click": "اسحب و أفلت أو انقر باش تختار",
+      "max_file_size": "الحد الأقصى 4GB",
+      "supported_formats": "الصيغ المدعومة:",
+      "max_size": "الحجم الأقصى: 4GB (Azure Blob Storage)",
+      "optimization_tips": "💡 نصائح التحسين:",
+      "recommended_resolution": "الدقة الموصى بها: 1080p (1920x1080)",
+      "recommended_codec": "الكودك الموصى به: H.264 للتوافق الأقصى",
+      "bitrate_tip": "معدل البت: 2-8 Mbps حسب الجودة",
+      "large_files_supported": "الملفات الكبيرة مدعومة (حتى 4GB)",
+      "presentation_uploaded": "تم رفع العرض على Azure",
+      "presentation_ready": "العرض جاهز للاستعمال",
+      "remove_presentation": "حذف العرض",
+      "upload_presentation": "رفع عرض تقديمي",
+      "pdf_or_powerpoint": "PDF أو PowerPoint • الحد الأقصى 200MB",
+      "presentation_formats": "الصيغ: PDF (موصى به) أو PowerPoint (.pptx)"
     }
   }
 }

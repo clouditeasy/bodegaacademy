@@ -167,7 +167,7 @@ export function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -262,7 +262,7 @@ export function AdminDashboard() {
               setEditingModule(null);
               setCurrentView('form');
             }}
-            className="bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
+            className="bg-gray-900 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">{t('new_module')}</span>
@@ -348,7 +348,7 @@ export function AdminDashboard() {
                   setEditingModule(null);
                   setCurrentView('form');
                 }}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm sm:text-base"
+                className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm sm:text-base"
               >
                 {t('create_first_module')}
               </button>

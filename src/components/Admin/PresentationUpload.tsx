@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, FileText, Presentation, AlertCircle, CheckCircle } from 'lucide-react';
 import { azureStorage } from '../../lib/azureStorage';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface PresentationUploadProps {
   onPresentationUploaded: (url: string, type: 'pdf' | 'powerpoint') => void;
@@ -15,6 +16,7 @@ export function PresentationUpload({
   currentPresentationType,
   onRemovePresentation
 }: PresentationUploadProps) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -141,15 +143,15 @@ export function PresentationUpload({
             <CheckCircle className="h-5 w-5 text-green-600" />
             <div>
               <p className="text-sm font-medium text-green-800">
-                Présentation {getPresentationTypeName()} téléchargée
+                {t('upload.presentation_uploaded')} ({getPresentationTypeName()})
               </p>
-              <p className="text-xs text-green-600">Fichier prêt pour l'intégration</p>
+              <p className="text-xs text-green-600">{t('upload.presentation_ready')}</p>
             </div>
           </div>
           <button
             onClick={handleRemove}
             className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full transition-colors"
-            title="Supprimer la présentation"
+            title={t('upload.remove_presentation')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -165,9 +167,9 @@ export function PresentationUpload({
         <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
           <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-red-800">Azure Blob Storage non configuré</p>
+            <p className="text-sm font-medium text-red-800">{t('upload.azure_not_configured')}</p>
             <p className="text-xs text-red-600 mt-1">
-              Ajoutez les variables VITE_AZURE_STORAGE_ACCOUNT et VITE_AZURE_SAS_TOKEN à votre fichier .env
+              {t('upload.azure_config_help')}
             </p>
           </div>
         </div>
@@ -199,8 +201,8 @@ export function PresentationUpload({
                 <Upload className="h-6 w-6 text-orange-600 animate-pulse" />
               </div>
               <div>
-                <p className="text-sm font-medium text-orange-900">Téléchargement en cours...</p>
-                <p className="text-xs text-orange-700">{uploadProgress}% terminé</p>
+                <p className="text-sm font-medium text-orange-900">{t('upload.upload_in_progress')}</p>
+                <p className="text-xs text-orange-700">{uploadProgress}% {t('upload.percent_complete')}</p>
               </div>
               <div className="w-full bg-orange-200 rounded-full h-2">
                 <div
@@ -215,9 +217,9 @@ export function PresentationUpload({
                 <Presentation className="h-6 w-6 text-gray-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Télécharger une présentation</p>
+                <p className="text-sm font-medium text-gray-900">{t('upload.upload_presentation')}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Glissez-déposez ou cliquez pour sélectionner
+                  {t('upload.drag_drop_or_click')}
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
                   PDF, PPT, PPTX • Max 100MB
@@ -239,19 +241,8 @@ export function PresentationUpload({
       {/* Instructions */}
       <div className="text-xs text-gray-500 space-y-2">
         <div>
-          <p className="font-medium">Formats supportés:</p>
-          <p>PDF, PowerPoint (.ppt, .pptx)</p>
-          <p className="mt-1">Taille maximale: 100MB</p>
-        </div>
-
-        <div className="p-2 bg-blue-50 rounded border-l-2 border-blue-200">
-          <p className="font-medium text-blue-800">💡 Conseils :</p>
-          <ul className="text-blue-700 mt-1 list-disc list-inside space-y-1">
-            <li>PDF : Idéal pour des documents textuels et graphiques</li>
-            <li>PowerPoint : Conserve les animations et transitions</li>
-            <li>Optimisez vos images pour réduire la taille</li>
-            <li>Les présentations seront visualisables directement</li>
-          </ul>
+          <p className="font-medium">{t('upload.supported_formats')}</p>
+          <p>{t('upload.presentation_formats')}</p>
         </div>
       </div>
     </div>

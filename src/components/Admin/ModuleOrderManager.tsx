@@ -107,7 +107,7 @@ export function ModuleOrderManager({ trainingPathId, onClose }: ModuleOrderManag
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -129,7 +129,7 @@ export function ModuleOrderManager({ trainingPathId, onClose }: ModuleOrderManag
             <button
               onClick={saveOrder}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               {saving ? 'Sauvegarde...' : 'Sauvegarder'}
@@ -151,7 +151,7 @@ export function ModuleOrderManager({ trainingPathId, onClose }: ModuleOrderManag
             >
               <div className="flex items-center gap-2">
                 <GripVertical className="h-5 w-5 text-gray-400 cursor-grab" />
-                <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm">
+                <div className="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold text-sm">
                   {index + 1}
                 </div>
               </div>

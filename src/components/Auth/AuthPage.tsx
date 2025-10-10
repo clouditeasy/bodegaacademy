@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignUpForm } from './SignUpForm';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+  const { t } = useLanguage();
 
   const handleLogin = async (email: string, password: string) => {
     setLoading(true);
@@ -33,7 +35,7 @@ export function AuthPage() {
             className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-lg"
           />
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-            Bodega Academy
+            {t('app_name')}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             {isLogin ? 'Connectez-vous à votre compte' : 'Créez votre compte'}

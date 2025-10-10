@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Video, AlertCircle, CheckCircle } from 'lucide-react';
 import { azureStorage } from '../../lib/azureStorage';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface VideoUploadProps {
   onVideoUploaded: (url: string) => void;
@@ -9,6 +10,7 @@ interface VideoUploadProps {
 }
 
 export function VideoUpload({ onVideoUploaded, currentVideoUrl, onRemoveVideo }: VideoUploadProps) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -116,14 +118,14 @@ export function VideoUpload({ onVideoUploaded, currentVideoUrl, onRemoveVideo }:
           <div className="flex items-center gap-3">
             <CheckCircle className="h-5 w-5 text-green-600" />
             <div>
-              <p className="text-sm font-medium text-green-800">Vidéo téléchargée sur Azure</p>
-              <p className="text-xs text-green-600">Fichier prêt pour l'intégration</p>
+              <p className="text-sm font-medium text-green-800">{t('upload.video_uploaded')}</p>
+              <p className="text-xs text-green-600">{t('upload.video_ready')}</p>
             </div>
           </div>
           <button
             onClick={handleRemove}
             className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full transition-colors"
-            title="Supprimer la vidéo"
+            title={t('upload.remove_video')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -139,9 +141,9 @@ export function VideoUpload({ onVideoUploaded, currentVideoUrl, onRemoveVideo }:
         <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
           <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-red-800">Azure Blob Storage non configuré</p>
+            <p className="text-sm font-medium text-red-800">{t('upload.azure_not_configured')}</p>
             <p className="text-xs text-red-600 mt-1">
-              Ajoutez les variables VITE_AZURE_STORAGE_ACCOUNT et VITE_AZURE_SAS_TOKEN à votre fichier .env
+              {t('upload.azure_config_help')}
             </p>
           </div>
         </div>
@@ -173,8 +175,8 @@ export function VideoUpload({ onVideoUploaded, currentVideoUrl, onRemoveVideo }:
                 <Upload className="h-6 w-6 text-orange-600 animate-pulse" />
               </div>
               <div>
-                <p className="text-sm font-medium text-orange-900">Téléchargement en cours...</p>
-                <p className="text-xs text-orange-700">{uploadProgress}% terminé</p>
+                <p className="text-sm font-medium text-orange-900">{t('upload.upload_in_progress')}</p>
+                <p className="text-xs text-orange-700">{uploadProgress}% {t('upload.percent_complete')}</p>
               </div>
               <div className="w-full bg-orange-200 rounded-full h-2">
                 <div
@@ -189,12 +191,12 @@ export function VideoUpload({ onVideoUploaded, currentVideoUrl, onRemoveVideo }:
                 <Video className="h-6 w-6 text-gray-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Télécharger une vidéo</p>
+                <p className="text-sm font-medium text-gray-900">{t('upload.upload_video')}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Glissez-déposez ou cliquez pour sélectionner
+                  {t('upload.drag_drop_or_click')}
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
-                  MP4, AVI, MOV, WMV, MKV, WebM • Max 4GB
+                  MP4, AVI, MOV, WMV, MKV, WebM • {t('upload.max_file_size')}
                 </p>
               </div>
             </div>
@@ -213,18 +215,18 @@ export function VideoUpload({ onVideoUploaded, currentVideoUrl, onRemoveVideo }:
       {/* Instructions */}
       <div className="text-xs text-gray-500 space-y-2">
         <div>
-          <p className="font-medium">Formats supportés:</p>
+          <p className="font-medium">{t('upload.supported_formats')}</p>
           <p>MP4 (recommandé), AVI, MOV, WMV, MKV, WebM</p>
-          <p className="mt-1">Taille maximale: 4GB (Azure Blob Storage)</p>
+          <p className="mt-1">{t('upload.max_size')}</p>
         </div>
 
         <div className="p-2 bg-blue-50 rounded border-l-2 border-blue-200">
-          <p className="font-medium text-blue-800">💡 Conseils d'optimisation :</p>
+          <p className="font-medium text-blue-800">{t('upload.optimization_tips')}</p>
           <ul className="text-blue-700 mt-1 list-disc list-inside space-y-1">
-            <li>Résolution recommandée : 1080p (1920x1080)</li>
-            <li>Codec recommandé : H.264 pour une compatibilité maximale</li>
-            <li>Bitrate : 2-8 Mbps selon la qualité souhaitée</li>
-            <li>Les fichiers volumineux sont supportés (jusqu'à 4GB)</li>
+            <li>{t('upload.recommended_resolution')}</li>
+            <li>{t('upload.recommended_codec')}</li>
+            <li>{t('upload.bitrate_tip')}</li>
+            <li>{t('upload.large_files_supported')}</li>
           </ul>
         </div>
       </div>

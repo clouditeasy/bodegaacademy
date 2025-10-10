@@ -33,6 +33,19 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   const [nextModuleTitle, setNextModuleTitle] = useState<string>('');
   const [trainingPathName, setTrainingPathName] = useState<string>('');
 
+  // Déterminer quelle vidéo/présentation afficher selon la langue avec fallback
+  const videoUrl = language === 'ar' && module.video_url_ar
+    ? module.video_url_ar
+    : module.video_url;
+
+  const presentationUrl = language === 'ar' && module.presentation_url_ar
+    ? module.presentation_url_ar
+    : module.presentation_url;
+
+  const presentationType = language === 'ar' && module.presentation_type_ar
+    ? module.presentation_type_ar
+    : module.presentation_type;
+
   useEffect(() => {
     if (user) {
       fetchProgress();
@@ -316,16 +329,16 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
       {/* Content */}
       <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 lg:p-8">
         <div className="prose prose-lg max-w-none">
-          {module.video_url && (
+          {videoUrl && (
             <div className="mb-6 sm:mb-8">
-              <VideoEmbed url={module.video_url} />
+              <VideoEmbed url={videoUrl} />
             </div>
           )}
 
-          {module.presentation_url && module.presentation_type && (
+          {presentationUrl && presentationType && (
             <PresentationViewer
-              url={module.presentation_url}
-              type={module.presentation_type}
+              url={presentationUrl}
+              type={presentationType}
               title={module.title}
             />
           )}
