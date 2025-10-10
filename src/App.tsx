@@ -6,9 +6,26 @@ import { MainLayout } from './components/Layout/MainLayout';
 import { LanguageProvider } from './contexts/LanguageContext';
 
 function App() {
-  const { user, userProfile, loading } = useAuth();
+  console.log('[App] Component mounting...');
+
+  let authState;
+  try {
+    authState = useAuth();
+    console.log('[App] useAuth result:', {
+      hasUser: !!authState.user,
+      hasProfile: !!authState.userProfile,
+      loading: authState.loading
+    });
+  } catch (error) {
+    console.error('[App] Error in useAuth:', error);
+    throw error;
+  }
+
+  const { user, userProfile, loading } = authState;
 
   if (loading) {
+    console.log('[App] Loading state...');
+
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -24,9 +41,11 @@ function App() {
   }
 
   if (!user || !userProfile) {
+    console.log('[App] Rendering AuthPage');
     return <AuthPage />;
   }
 
+  console.log('[App] Rendering MainLayout with LanguageProvider');
   return (
     <LanguageProvider>
       <Router>
