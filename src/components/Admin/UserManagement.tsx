@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Edit, Trash2, Users, Shield, Mail, Calendar, Search, Filter } from 'lucide-react';
 import { supabase, UserProfile } from '../../lib/supabase';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface UserManagementProps {
   onBack: () => void;
 }
 
 export function UserManagement({ onBack }: UserManagementProps) {
+  const { t } = useLanguage();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -165,7 +167,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
   if (loading && users.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -176,10 +178,10 @@ export function UserManagement({ onBack }: UserManagementProps) {
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Retour à l'administration
+          <ArrowLeft className="h-5 w-5" />
+          {t('back_to_admin')}
         </button>
         
         <div className="flex justify-between items-center">
@@ -190,7 +192,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
           
           <button
             onClick={() => setShowCreateForm(true)}
-            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors flex items-center gap-2"
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             Nouvel utilisateur
@@ -257,7 +259,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
               placeholder="Rechercher par nom ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
           </div>
           
@@ -266,7 +268,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as typeof roleFilter)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="all">Tous les rôles</option>
               <option value="employee">Employés</option>
@@ -292,7 +294,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                   type="text"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -305,7 +307,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -316,10 +318,9 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 </label>
                 <input
                   type="password"
-                  autoComplete="new-password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   minLength={6}
                   required
                 />
@@ -332,7 +333,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as typeof formData.role })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   <option value="employee">Employé</option>
                   <option value="hr">RH</option>
@@ -352,7 +353,7 @@ export function UserManagement({ onBack }: UserManagementProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors"
+                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
               >
                 {loading ? 'Création...' : 'Créer'}
               </button>
@@ -392,8 +393,8 @@ export function UserManagement({ onBack }: UserManagementProps) {
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-gray-900 flex items-center justify-center">
-                        <span className="text-gray-900 font-medium">
+                      <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <span className="text-orange-600 font-medium">
                           {user.full_name.charAt(0).toUpperCase()}
                         </span>
                       </div>

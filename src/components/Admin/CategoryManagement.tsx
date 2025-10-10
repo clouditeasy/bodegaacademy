@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Edit2, Plus, Trash2, Save, X, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Edit2, Plus, Trash2, Save, X, AlertCircle, ArrowUpDown } from 'lucide-react';
 import { ModuleCategory } from '../../lib/supabase';
 import { CategoryService } from '../../services/categoryService';
+import { ModuleOrderManager } from './ModuleOrderManager';
+import { RichTextEditor } from './RichTextEditor';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslatedField } from '../../utils/translation';
 
 interface CategoryManagementProps {
   onBack: () => void;
@@ -13,6 +17,7 @@ interface EditableCategory extends ModuleCategory {
 }
 
 export function CategoryManagement({ onBack }: CategoryManagementProps) {
+  const { language } = useLanguage();
   const [categories, setCategories] = useState<EditableCategory[]>([]);
   const [newCategory, setNewCategory] = useState<Partial<ModuleCategory>>({
     name: '',
@@ -24,6 +29,9 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
+  const [orderManagerPathId, setOrderManagerPathId] = useState<string | null>(null);
+  const [languageTab, setLanguageTab] = useState<'fr' | 'ar'>('fr');
+  const [editLanguageTab, setEditLanguageTab] = useState<{ [key: string]: 'fr' | 'ar' }>({});
 
   useEffect(() => {
     loadCategories();
@@ -174,7 +182,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center min-h-96">
-          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -205,9 +213,9 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
       <div className="mb-4">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 transition-colors"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-3 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           Retour au dashboard
         </button>
         
@@ -218,7 +226,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
           
           <button
             onClick={() => setShowAddForm(true)}
-            className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2"
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             Nouveau parcours
@@ -234,47 +242,104 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
       {showAddForm && (
         <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Nouveau Parcours de Formation</h3>
-          
+
+          {/* Language Tabs */}
+          <div className="flex gap-2 border-b mb-4">
+            <button
+              type="button"
+              onClick={() => setLanguageTab('fr')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                languageTab === 'fr'
+                  ? 'border-b-2 border-orange-500 text-orange-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              🇫🇷 Français
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguageTab('ar')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                languageTab === 'ar'
+                  ? 'border-b-2 border-orange-500 text-orange-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              🇲🇦 العربية
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom du parcours *
-              </label>
-              <input
-                type="text"
-                value={newCategory.name || ''}
-                onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Ex: Parcours Employé Salle / Comptoir"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Icône (emoji) *
-              </label>
-              <input
-                type="text"
-                value={newCategory.icon || ''}
-                onChange={(e) => setNewCategory(prev => ({ ...prev, icon: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="🧽"
-                maxLength={2}
-              />
-            </div>
-            
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                value={newCategory.description || ''}
-                onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                rows={3}
-                placeholder="Description de la catégorie..."
-              />
-            </div>
+            {languageTab === 'fr' ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom du parcours * (Français)
+                  </label>
+                  <input
+                    type="text"
+                    value={newCategory.name || ''}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Ex: Parcours Employé Salle / Comptoir"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Icône (emoji) *
+                  </label>
+                  <input
+                    type="text"
+                    value={newCategory.icon || ''}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, icon: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="🧽"
+                    maxLength={2}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description * (Français)
+                  </label>
+                  <RichTextEditor
+                    value={newCategory.description || ''}
+                    onChange={(description) => setNewCategory(prev => ({ ...prev, description }))}
+                    placeholder="Description de la catégorie..."
+                    height={200}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الاسم (عربية)
+                  </label>
+                  <input
+                    type="text"
+                    value={(newCategory as any).name_ar || ''}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, name_ar: e.target.value } as any))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    dir="rtl"
+                    placeholder="الترجمة العربية للاسم"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الوصف (عربية)
+                  </label>
+                  <RichTextEditor
+                    value={(newCategory as any).description_ar || ''}
+                    onChange={(description_ar) => setNewCategory(prev => ({ ...prev, description_ar } as any))}
+                    placeholder="الترجمة العربية للوصف..."
+                    height={200}
+                  />
+                </div>
+              </>
+            )}
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -283,7 +348,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
               <select
                 value={newCategory.color || 'bg-gray-500'}
                 onChange={(e) => setNewCategory(prev => ({ ...prev, color: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 {colorOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -304,7 +369,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
             <button
               onClick={handleAddCategory}
               disabled={saving === 'new'}
-              className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {saving === 'new' ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -331,43 +396,99 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
               {category.isEditing ? (
                 /* Edit Mode */
                 <div className="space-y-4">
+                  {/* Language Tabs */}
+                  <div className="flex gap-2 border-b mb-4">
+                    <button
+                      onClick={() => setEditLanguageTab(prev => ({ ...prev, [category.id]: 'fr' }))}
+                      className={`px-4 py-2 font-medium transition-colors ${
+                        (editLanguageTab[category.id] || 'fr') === 'fr'
+                          ? 'border-b-2 border-orange-500 text-orange-600'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      🇫🇷 Français
+                    </button>
+                    <button
+                      onClick={() => setEditLanguageTab(prev => ({ ...prev, [category.id]: 'ar' }))}
+                      className={`px-4 py-2 font-medium transition-colors ${
+                        editLanguageTab[category.id] === 'ar'
+                          ? 'border-b-2 border-orange-500 text-orange-600'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      🇲🇦 العربية
+                    </button>
+                  </div>
+
+                  {(editLanguageTab[category.id] || 'fr') === 'fr' ? (
+                    /* French Fields */
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Nom
+                        </label>
+                        <input
+                          type="text"
+                          value={category.name}
+                          onChange={(e) => handleUpdateCategory(category.id, 'name', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Icône
+                        </label>
+                        <input
+                          type="text"
+                          value={category.icon}
+                          onChange={(e) => handleUpdateCategory(category.id, 'icon', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          maxLength={2}
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Description
+                        </label>
+                        <RichTextEditor
+                          value={category.description}
+                          onChange={(description) => handleUpdateCategory(category.id, 'description', description)}
+                          height={200}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* Arabic Fields */
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          الاسم (Nom en arabe)
+                        </label>
+                        <input
+                          type="text"
+                          value={category.name_ar || ''}
+                          onChange={(e) => handleUpdateCategory(category.id, 'name_ar', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          dir="rtl"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          الوصف (Description en arabe)
+                        </label>
+                        <RichTextEditor
+                          value={category.description_ar || ''}
+                          onChange={(description) => handleUpdateCategory(category.id, 'description_ar', description)}
+                          height={200}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nom
-                      </label>
-                      <input
-                        type="text"
-                        value={category.name}
-                        onChange={(e) => handleUpdateCategory(category.id, 'name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Icône
-                      </label>
-                      <input
-                        type="text"
-                        value={category.icon}
-                        onChange={(e) => handleUpdateCategory(category.id, 'icon', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        maxLength={2}
-                      />
-                    </div>
-                    
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Description
-                      </label>
-                      <textarea
-                        value={category.description}
-                        onChange={(e) => handleUpdateCategory(category.id, 'description', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        rows={3}
-                      />
-                    </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -376,7 +497,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                       <select
                         value={category.color}
                         onChange={(e) => handleUpdateCategory(category.id, 'color', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       >
                         {colorOptions.map(option => (
                           <option key={option.value} value={option.value}>
@@ -398,7 +519,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                     <button
                       onClick={() => handleSaveCategory(category.id)}
                       disabled={saving === category.id}
-                      className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                     >
                       {saving === category.id ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -414,11 +535,14 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="text-3xl">{category.icon}</div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900">
-                        {category.name}
+                        {getTranslatedField(category, 'name', language)}
                       </h3>
-                      <p className="text-gray-600">{category.description}</p>
+                      <div
+                        className="text-gray-600 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: getTranslatedField(category, 'description', language) }}
+                      />
                       <div className="flex items-center gap-2 mt-2">
                         <div className={`w-4 h-4 rounded ${category.color}`}></div>
                         <span className="text-sm text-gray-500">ID: {category.id}</span>
@@ -428,8 +552,15 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                   
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={() => setOrderManagerPathId(category.id)}
+                      className="p-2 text-gray-500 hover:text-orange-600 transition-colors rounded-lg hover:bg-orange-50"
+                      title="Gérer l'ordre des modules"
+                    >
+                      <ArrowUpDown className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => handleEditCategory(category.id)}
-                      className="p-2 text-gray-500 hover:text-indigo-600 transition-colors rounded-lg hover:bg-indigo-50"
+                      className="p-2 text-gray-500 hover:text-orange-600 transition-colors rounded-lg hover:bg-orange-50"
                       title="Modifier"
                     >
                       <Edit2 className="h-4 w-4" />
@@ -464,13 +595,28 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
             </p>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
+              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
             >
               Créer un parcours
             </button>
           </div>
         )}
       </div>
+
+      {/* Module Order Manager Modal */}
+      {orderManagerPathId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <ModuleOrderManager
+              trainingPathId={orderManagerPathId}
+              onClose={() => {
+                setOrderManagerPathId(null);
+                loadCategories(); // Refresh to show updated data
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Info Box */}
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -479,8 +625,9 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
           <div className="text-sm text-blue-700">
             <p className="font-medium mb-1">Gestion des parcours de formation :</p>
             <p>
-              Les modifications sont automatiquement sauvegardées dans la base de données. 
+              Les modifications sont automatiquement sauvegardées dans la base de données.
               Chaque parcours peut contenir plusieurs modules et se terminer par un quiz final.
+              Utilisez l'icône <ArrowUpDown className="h-3 w-3 inline" /> pour gérer l'ordre séquentiel des modules dans chaque parcours.
             </p>
           </div>
         </div>

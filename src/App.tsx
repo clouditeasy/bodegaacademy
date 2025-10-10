@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { AuthPage } from './components/Auth/AuthPage';
 import { MainLayout } from './components/Layout/MainLayout';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 function App() {
   const { user, userProfile, loading } = useAuth();
@@ -27,9 +28,11 @@ function App() {
   }
 
   return (
-    <Router>
-      <MainLayout />
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <MainLayout />
+      </Router>
+    </LanguageProvider>
   );
 }
 

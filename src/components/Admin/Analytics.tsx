@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, TrendingUp, Users, BookOpen, Trophy, Calendar, Download, BarChart3 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase, Module } from '../../lib/supabase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslatedField } from '../../utils/translation';
 
 interface AnalyticsProps {
   onBack: () => void;
@@ -24,8 +26,10 @@ interface TimeSeriesData {
 }
 
 export function Analytics({ onBack }: AnalyticsProps) {
+  const { language, t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [moduleStats, setModuleStats] = useState<ModuleStats[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
   const [timeSeriesData, setTimeSeriesData] = useState<TimeSeriesData[]>([]);
   const [globalStats, setGlobalStats] = useState({
     totalUsers: 0,
@@ -98,6 +102,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
         };
       });
 
+      setModules(modules);
       setModuleStats(stats);
     } catch (error) {
       console.error('Error fetching module stats:', error);
@@ -240,14 +245,14 @@ export function Analytics({ onBack }: AnalyticsProps) {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `bodega-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `moojood-analytics-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -258,16 +263,16 @@ export function Analytics({ onBack }: AnalyticsProps) {
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Retour à l'administration
+          <ArrowLeft className="h-5 w-5" />
+          {t('back_to_admin')}
         </button>
         
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics & Statistiques</h1>
-            <p className="text-gray-600">Analyse détaillée des performances et de l'engagement</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('admin.analytics_title')}</h1>
+            <p className="text-gray-600">{t('admin.analytics_subtitle')}</p>
           </div>
           
           <button
@@ -275,7 +280,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
-            Exporter CSV
+            {t('admin.export_data')}
           </button>
         </div>
       </div>
@@ -286,7 +291,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
           <div className="flex items-center">
             <Users className="h-6 w-6 text-blue-500" />
             <div className="ml-3">
-              <p className="text-xs font-medium text-gray-500">Utilisateurs</p>
+              <p className="text-xs font-medium text-gray-500">{t('users')}</p>
               <p className="text-lg font-bold text-gray-900">{globalStats.totalUsers}</p>
             </div>
           </div>
@@ -296,7 +301,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
           <div className="flex items-center">
             <BookOpen className="h-6 w-6 text-green-500" />
             <div className="ml-3">
-              <p className="text-xs font-medium text-gray-500">Modules</p>
+              <p className="text-xs font-medium text-gray-500">{t('admin.modules')}</p>
               <p className="text-lg font-bold text-gray-900">{globalStats.totalModules}</p>
             </div>
           </div>
@@ -306,7 +311,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
           <div className="flex items-center">
             <Trophy className="h-6 w-6 text-yellow-500" />
             <div className="ml-3">
-              <p className="text-xs font-medium text-gray-500">Completions</p>
+              <p className="text-xs font-medium text-gray-500">{t('admin.completions')}</p>
               <p className="text-lg font-bold text-gray-900">{globalStats.totalCompletions}</p>
             </div>
           </div>
@@ -314,9 +319,9 @@ export function Analytics({ onBack }: AnalyticsProps) {
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
-            <TrendingUp className="h-6 w-6 text-black" />
+            <TrendingUp className="h-6 w-6 text-orange-500" />
             <div className="ml-3">
-              <p className="text-xs font-medium text-gray-500">Taux Moyen</p>
+              <p className="text-xs font-medium text-gray-500">{t('admin.completion_rate')}</p>
               <p className="text-lg font-bold text-gray-900">{globalStats.averageCompletionRate}%</p>
             </div>
           </div>
@@ -326,7 +331,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
           <div className="flex items-center">
             <BarChart3 className="h-6 w-6 text-purple-500" />
             <div className="ml-3">
-              <p className="text-xs font-medium text-gray-500">Score Moyen</p>
+              <p className="text-xs font-medium text-gray-500">{t('admin.average_score')}</p>
               <p className="text-lg font-bold text-gray-900">{globalStats.averageScore}%</p>
             </div>
           </div>
@@ -336,7 +341,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
           <div className="flex items-center">
             <Calendar className="h-6 w-6 text-red-500" />
             <div className="ml-3">
-              <p className="text-xs font-medium text-gray-500">Actifs (7j)</p>
+              <p className="text-xs font-medium text-gray-500">{t('admin.active_users')}</p>
               <p className="text-lg font-bold text-gray-900">{globalStats.activeUsersLastWeek}</p>
             </div>
           </div>
@@ -345,7 +350,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
 
       {/* Activity Chart */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Activité des 30 derniers jours</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.activity_last_30_days')}</h3>
         <div className="h-64 flex items-end justify-between gap-1">
           {timeSeriesData.map((day, index) => {
             const maxValue = Math.max(...timeSeriesData.map(d => Math.max(d.completions, d.new_users)));
@@ -356,7 +361,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
               <div key={index} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full max-w-4 flex flex-col gap-1">
                   <div 
-                    className="bg-gray-500 rounded-t"
+                    className="bg-orange-500 rounded-t"
                     style={{ height: `${completionHeight}px` }}
                     title={`${day.completions} completions`}
                   />
@@ -377,12 +382,12 @@ export function Analytics({ onBack }: AnalyticsProps) {
         </div>
         <div className="flex justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-500 rounded"></div>
-            <span className="text-sm text-gray-600">Completions</span>
+            <div className="w-4 h-4 bg-orange-500 rounded"></div>
+            <span className="text-sm text-gray-600">{t('admin.completions')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-500 rounded"></div>
-            <span className="text-sm text-gray-600">Nouveaux utilisateurs</span>
+            <span className="text-sm text-gray-600">{t('admin.new_users')}</span>
           </div>
         </div>
       </div>
@@ -390,7 +395,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
       {/* Module Performance */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Performance des Modules</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('admin.module_performance')}</h2>
         </div>
         
         <div className="overflow-x-auto">
@@ -398,28 +403,32 @@ export function Analytics({ onBack }: AnalyticsProps) {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Module
+                  {t('admin.modules')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Participants
+                  {t('admin.participants')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Taux de Réussite
+                  {t('admin.success_rate')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Score Moyen
+                  {t('admin.average_score')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tentatives Moy.
+                  {t('admin.avg_attempts')}
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {moduleStats.map((stat) => (
-                <tr key={stat.module_id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{stat.module_title}</div>
-                  </td>
+              {moduleStats.map((stat) => {
+                const module = modules.find(m => m.id === stat.module_id);
+                return (
+                  <tr key={stat.module_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {module ? getTranslatedField(module, 'title', language) : stat.module_title}
+                      </div>
+                    </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-900">{stat.total_users}</span>
@@ -428,7 +437,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
                           {stat.completed_users} ✓
                         </span>
                         {stat.in_progress_users > 0 && (
-                          <span className="px-2 py-1 bg-gray-900 text-white text-xs rounded">
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
                             {stat.in_progress_users} ⏳
                           </span>
                         )}
@@ -442,7 +451,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
                           <div 
                             className={`h-2 rounded-full ${
                               stat.completion_rate >= 80 ? 'bg-green-500' :
-                              stat.completion_rate >= 60 ? 'bg-gray-500' : 'bg-red-500'
+                              stat.completion_rate >= 60 ? 'bg-orange-500' : 'bg-red-500'
                             }`}
                             style={{ width: `${stat.completion_rate}%` }}
                           />
@@ -457,7 +466,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
                     <div className="flex items-center gap-2">
                       <Trophy className="h-4 w-4 text-yellow-500" />
                       <span className={`text-sm font-medium ${
-                        stat.average_score >= 80 ? 'text-green-600' : 'text-gray-900'
+                        stat.average_score >= 80 ? 'text-green-600' : 'text-orange-600'
                       }`}>
                         {stat.average_score}%
                       </span>
@@ -467,7 +476,8 @@ export function Analytics({ onBack }: AnalyticsProps) {
                     <span className="text-sm text-gray-900">{stat.average_attempts}</span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -475,7 +485,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
         {moduleStats.length === 0 && (
           <div className="text-center py-12">
             <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Aucune donnée analytique disponible</p>
+            <p className="text-gray-500">{t('admin.no_analytics_data')}</p>
           </div>
         )}
       </div>

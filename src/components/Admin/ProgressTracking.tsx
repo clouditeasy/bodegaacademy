@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Download, Trophy, Clock, CheckCircle, Users, Search } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface UserProgressData {
   user_id: string;
@@ -19,6 +20,7 @@ interface ProgressTrackingProps {
 }
 
 export function ProgressTracking({ onBack }: ProgressTrackingProps) {
+  const { t } = useLanguage();
   const [progressData, setProgressData] = useState<UserProgressData[]>([]);
   const [filteredData, setFilteredData] = useState<UserProgressData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -159,14 +161,14 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `bodega-academy-progress-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `moojood-academy-progress-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -177,24 +179,24 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Retour à l'administration
+          <ArrowLeft className="h-5 w-5" />
+          {t('back_to_admin')}
         </button>
         
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Suivi des Progressions</h1>
-            <p className="text-gray-600">Analyse des performances et progression des employés</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('admin.progress_title')}</h1>
+            <p className="text-gray-600">{t('admin.progress_subtitle')}</p>
           </div>
-          
+
           <button
             onClick={exportToCSV}
             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
-            Exporter CSV
+            {t('admin.export_csv')}
           </button>
         </div>
       </div>
@@ -205,7 +207,7 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
           <div className="flex items-center">
             <Users className="h-8 w-8 text-blue-500" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Employés</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.total_employees')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
             </div>
           </div>
@@ -213,9 +215,9 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <Clock className="h-8 w-8 text-black" />
+            <Clock className="h-8 w-8 text-orange-500" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Employés Actifs</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.active_employees')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.activeUsers}</p>
             </div>
           </div>
@@ -225,7 +227,7 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
           <div className="flex items-center">
             <CheckCircle className="h-8 w-8 text-green-500" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Taux Moyen</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.completion_rate')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.averageCompletion}%</p>
             </div>
           </div>
@@ -235,8 +237,8 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
           <div className="flex items-center">
             <Trophy className="h-8 w-8 text-yellow-500" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Top Performer</p>
-              <p className="text-lg font-bold text-gray-900 truncate">{stats.topPerformer}</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.top_performer')}</p>
+              <p className="text-lg font-bold text-gray-900 truncate">{stats.topPerformer || t('admin.none')}</p>
             </div>
           </div>
         </div>
@@ -249,14 +251,14 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher un employé par nom ou email..."
+              placeholder={t('admin.search_employee')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
           </div>
           <div className="text-sm text-gray-500">
-            {filteredData.length} employé{filteredData.length > 1 ? 's' : ''} affiché{filteredData.length > 1 ? 's' : ''}
+            {filteredData.length} {t('admin.employees_displayed')}
           </div>
         </div>
       </div>
@@ -264,7 +266,7 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
       {/* Progress Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Détail des Progressions</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('admin.progress_details')}</h2>
         </div>
         
         <div className="overflow-x-auto">
@@ -272,19 +274,19 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Employé
+                  {t('admin.employee')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Progression
+                  {t('admin.progression')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Modules Terminés
+                  {t('admin.modules_completed')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Score Moyen
+                  {t('admin.average_score')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Dernière Activité
+                  {t('admin.last_activity')}
                 </th>
               </tr>
             </thead>
@@ -306,7 +308,7 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-gray-500 h-2 rounded-full transition-all duration-300"
+                            className="bg-orange-500 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${user.completion_percentage}%` }}
                           />
                         </div>
@@ -319,8 +321,8 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
                       <span className="text-sm font-medium">{user.completed_modules}</span>
                       {user.in_progress_modules > 0 && (
                         <>
-                          <Clock className="h-4 w-4 text-black ml-2" />
-                          <span className="text-sm text-gray-900">{user.in_progress_modules}</span>
+                          <Clock className="h-4 w-4 text-orange-500 ml-2" />
+                          <span className="text-sm text-orange-600">{user.in_progress_modules}</span>
                         </>
                       )}
                     </div>
@@ -330,7 +332,7 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
                       <div className="flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-yellow-500" />
                         <span className={`text-sm font-medium ${
-                          user.average_score >= 80 ? 'text-green-600' : 'text-gray-900'
+                          user.average_score >= 80 ? 'text-green-600' : 'text-orange-600'
                         }`}>
                           {user.average_score}%
                         </span>
@@ -352,7 +354,7 @@ export function ProgressTracking({ onBack }: ProgressTrackingProps) {
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">
-              {searchTerm ? 'Aucun employé trouvé pour cette recherche' : 'Aucun employé inscrit'}
+              {searchTerm ? t('admin.no_employee_found_search') : t('admin.no_employee_registered')}
             </p>
           </div>
         )}

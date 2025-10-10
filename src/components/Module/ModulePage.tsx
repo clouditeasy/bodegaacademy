@@ -1,52 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Play, FileText, Award, CheckCircle, Maximize2, Minimize2 } from 'lucide-react';
+import { ArrowLeft, Play, FileText, Award, CheckCircle } from 'lucide-react';
 import { Module, UserProgress, supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { Quiz } from './Quiz';
-import { PDFViewer } from './PDFViewer';
+import { VideoEmbed } from './VideoEmbed';
+import { PresentationViewer } from './PresentationViewer';
+import { azureStorage } from '../../lib/azureStorage';
+import { MultiPageModule } from './MultiPageModule';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslatedField } from '../../utils/translation';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface ModulePageProps {
   module: Module;
   onBack: () => void;
 }
 
-// Fonction pour valider si l'URL vidéo est valide (Azure Blob Storage seulement)
-const isValidVideoUrl = (url: string): boolean => {
-  if (!url || url.trim() === '') return false;
-
-  // Vérifier si c'est une URL Azure Blob Storage valide
-  const azurePattern = /^https:\/\/[a-zA-Z0-9]+\.blob\.core\.windows\.net\//;
-
-  // Ou URLs directes vers des fichiers vidéo
-  const validPatterns = [
-    azurePattern,
-    /^https:\/\/.*\.(mp4|webm|avi|mov|mkv)(\?.*)?$/i,  // URLs directes vers vidéos
-  ];
-
-  return validPatterns.some(pattern => pattern.test(url));
-};
-
 export function ModulePage({ module, onBack }: ModulePageProps) {
+  // Si le module a des pages multiples, utiliser le nouveau composant
+  if (module.has_multiple_pages && module.pages && module.pages.length > 0) {
+    return <MultiPageModule module={module} onBack={onBack} />;
+  }
+
+  // Sinon, utiliser l'ancien système (module simple avec quiz global)
   const { user } = useAuth();
+  const { language } = useLanguage();
+  const { t } = useTranslation();
   const [currentView, setCurrentView] = useState<'content' | 'quiz'>('content');
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [loading, setLoading] = useState(true);
-  const [fullscreenPdf, setFullscreenPdf] = useState(false);
-  const [fullscreenPresentation, setFullscreenPresentation] = useState(false);
+  const [showUnlockNotification, setShowUnlockNotification] = useState(false);
+  const [nextModuleTitle, setNextModuleTitle] = useState<string>('');
+  const [trainingPathName, setTrainingPathName] = useState<string>('');
 
   useEffect(() => {
     if (user) {
       fetchProgress();
       markAsInProgress();
     }
-  }, [user, module.id]);
+    if (module.training_path_id) {
+      fetchTrainingPathName();
+    }
+  }, [user, module.id, module.training_path_id]);
+
+  const fetchTrainingPathName = async () => {
+    if (!module.training_path_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('training_paths')
+        .select('name')
+        .eq('id', module.training_path_id)
+        .single();
+
+      if (!error && data) {
+        setTrainingPathName(data.name);
+      }
+    } catch (error) {
+      console.error('Error fetching training path name:', error);
+    }
+  };
 
   const fetchProgress = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_progress')
         .select('*')
-        .eq('user_id', user!.id)
+        .eq('user_id', user.id)
         .eq('module_id', module.id)
         .single();
 
@@ -63,11 +88,13 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   };
 
   const markAsInProgress = async () => {
+    if (!user) return;
+
     try {
       const { data, error } = await supabase
         .from('user_progress')
         .upsert({
-          user_id: user!.id,
+          user_id: user.id,
           module_id: module.id,
           status: 'in_progress',
           updated_at: new Date().toISOString()
@@ -85,6 +112,8 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   };
 
   const handleQuizComplete = async (score: number) => {
+    if (!user) return;
+
     try {
       const newAttempts = (progress?.attempts || 0) + 1;
       const status = score >= 80 ? 'completed' : 'in_progress';
@@ -92,7 +121,7 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
       const { data, error } = await supabase
         .from('user_progress')
         .upsert({
-          user_id: user!.id,
+          user_id: user.id,
           module_id: module.id,
           status,
           score,
@@ -108,21 +137,73 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
       if (error) throw error;
       setProgress(data);
       setCurrentView('content');
+
+      // Si le quiz est réussi, vérifier s'il y a un module suivant à déverrouiller
+      if (score >= 80 && module.training_path_id) {
+        await checkNextModule();
+      }
     } catch (error) {
       console.error('Error updating progress:', error);
     }
   };
 
-  const renderContent = (content: string) => {
-    if (!content || content.trim() === '') {
-      return null;
-    }
+  const checkNextModule = async () => {
+    if (!user || !module.training_path_id) return;
 
-    // Le contenu est déjà en HTML (créé avec Quill.js), on l'affiche directement
+    try {
+      // Récupérer le module suivant dans le parcours
+      const { data: nextModule, error } = await supabase
+        .from('modules')
+        .select('title')
+        .eq('training_path_id', module.training_path_id)
+        .eq('order_index', module.order_index + 1)
+        .single();
+
+      if (!error && nextModule) {
+        setNextModuleTitle(nextModule.title);
+        setShowUnlockNotification(true);
+
+        // Masquer la notification après 5 secondes
+        setTimeout(() => {
+          setShowUnlockNotification(false);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('Error checking next module:', error);
+    }
+  };
+
+  const renderContent = (content: string) => {
+    // Log content pour debugging
+    if (content.includes('<img')) {
+      console.log('Contenu avec images:', content);
+    }
+    
+    // Traiter le contenu pour s'assurer que les URLs Azure ont les bons tokens SAS
+    let processedContent = content;
+    
+    if (azureStorage.isConfigured() && content.includes('blob.core.windows.net')) {
+      // Regex pour trouver les URLs d'images Azure
+      const azureImageRegex = /<img[^>]+src="([^"]*blob\.core\.windows\.net[^"]*)"[^>]*>/g;
+      processedContent = content.replace(azureImageRegex, (match, url) => {
+        try {
+          // S'assurer que l'URL a un token SAS
+          const urlWithSas = azureStorage.ensureSasToken(url);
+          console.log('URL originale:', url);
+          console.log('URL avec SAS:', urlWithSas);
+          return match.replace(url, urlWithSas);
+        } catch (error) {
+          console.error('Erreur lors du traitement de l\'URL:', error);
+          return match;
+        }
+      });
+    }
+    
+    // Render HTML content directly (from WYSIWYG editor)
     return (
-      <div
-        className="ql-editor"
-        dangerouslySetInnerHTML={{ __html: content }}
+      <div 
+        className="prose prose-lg max-w-none"
+        dangerouslySetInnerHTML={{ __html: processedContent }}
       />
     );
   };
@@ -130,7 +211,7 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -149,45 +230,81 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+      {/* Unlock Notification */}
+      {showUnlockNotification && nextModuleTitle && (
+        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 bg-green-50 border-2 border-green-500 rounded-lg shadow-lg p-4 z-50 animate-slide-in">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-bold text-green-900 mb-1">
+                🎉 {t('unlock_next_page')}
+              </h3>
+              <p className="text-sm text-green-800">
+                <strong>{nextModuleTitle}</strong>
+              </p>
+            </div>
+            <button
+              onClick={() => setShowUnlockNotification(false)}
+              className="flex-shrink-0 text-green-600 hover:text-green-800"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Retour au dashboard</span>
-          <span className="sm:hidden">Retour</span>
+          <ArrowLeft className="h-5 w-5" />
+          {trainingPathName ? (
+            <>
+              <span className="hidden sm:inline">{t('back_to_path')} : {trainingPathName}</span>
+              <span className="sm:hidden">{t('back_to_path')}</span>
+            </>
+          ) : (
+            <>
+              <span className="hidden sm:inline">{t('back_to_path')}</span>
+              <span className="sm:hidden">{t('back_to_dashboard')}</span>
+            </>
+          )}
         </button>
         
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 line-clamp-2">{module.title}</h1>
-            <p className="text-base sm:text-lg text-gray-600 mb-4 line-clamp-3">{module.description}</p>
-
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 line-clamp-2">{getTranslatedField(module, 'title', language)}</h1>
+            <p className="text-base sm:text-lg text-gray-600 mb-4 line-clamp-3">{getTranslatedField(module, 'description', language)}</p>
+            
             {progress && (
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  progress.status === 'completed'
+                  progress.status === 'completed' 
                     ? 'bg-green-100 text-green-800'
                     : progress.status === 'in_progress'
-                    ? 'bg-gray-900 text-white'
+                    ? 'bg-orange-100 text-orange-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {progress.status === 'completed' ? 'Terminé' :
-                   progress.status === 'in_progress' ? 'En cours' : 'Non commencé'}
+                  {progress.status === 'completed' ? t('completed') :
+                   progress.status === 'in_progress' ? t('in_progress') : t('available')}
                 </span>
-
+                
                 {progress.score !== null && (
                   <div className="flex items-center gap-2">
                     <Award className="h-4 w-4 text-yellow-500" />
-                    <span className="text-xs sm:text-sm font-medium">Score: {progress.score}%</span>
+                    <span className="text-xs sm:text-sm font-medium">{t('score')}: {progress.score}%</span>
                   </div>
                 )}
 
                 {progress.attempts > 0 && (
                   <span className="text-xs sm:text-sm text-gray-500">
-                    {progress.attempts} tentative{progress.attempts > 1 ? 's' : ''}
+                    {progress.attempts} {t('attempts')}
                   </span>
                 )}
               </div>
@@ -199,153 +316,49 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
       {/* Content */}
       <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 lg:p-8">
         <div className="prose prose-lg max-w-none">
-          {module.video_url && isValidVideoUrl(module.video_url) && (
+          {module.video_url && (
             <div className="mb-6 sm:mb-8">
-              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                <video
-                  controls
-                  className="w-full h-full object-cover"
-                  poster=""
-                >
-                  <source src={module.video_url} type="video/mp4" />
-                  <source src={module.video_url} type="video/webm" />
-                  Votre navigateur ne supporte pas la lecture vidéo.
-                </video>
-              </div>
+              <VideoEmbed url={module.video_url} />
             </div>
           )}
 
-          {module.pdf_url && (
-            <div className={`transition-all duration-300 ${
-              fullscreenPdf
-                ? 'fixed inset-0 z-50 bg-black bg-opacity-75 p-4'
-                : 'mb-6 sm:mb-8'
-            }`}>
-              {!fullscreenPdf && (
-                <div className="flex justify-end mb-2">
-                  <button
-                    onClick={() => setFullscreenPdf(true)}
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                    title="Plein écran"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-
-              <div className="relative">
-                {fullscreenPdf && (
-                  <button
-                    onClick={() => setFullscreenPdf(false)}
-                    className="absolute top-2 right-2 z-10 p-2 bg-gray-900 bg-opacity-75 text-white rounded-lg hover:bg-opacity-90 transition-all"
-                    title="Quitter le plein écran"
-                  >
-                    <Minimize2 className="h-4 w-4" />
-                  </button>
-                )}
-
-                <iframe
-                  src={`${module.pdf_url}#toolbar=0&navpanes=0&scrollbar=1`}
-                  className={`w-full border rounded-lg ${
-                    fullscreenPdf ? 'h-[calc(100vh-2rem)]' : 'h-96 lg:h-[600px]'
-                  }`}
-                  title="Visionneuse PDF"
-                  frameBorder="0"
-                  loading="lazy"
-                />
-              </div>
-
-              {fullscreenPdf && (
-                <div
-                  className="fixed inset-0 bg-black bg-opacity-50 -z-10"
-                  onClick={() => setFullscreenPdf(false)}
-                />
-              )}
-            </div>
-          )}
-
-          {module.presentation_url && (
-            <div className={`transition-all duration-300 ${
-              fullscreenPresentation
-                ? 'fixed inset-0 z-50 bg-black bg-opacity-75 p-4'
-                : 'mb-6 sm:mb-8'
-            }`}>
-              {!fullscreenPresentation && (
-                <div className="flex justify-end mb-2">
-                  <button
-                    onClick={() => setFullscreenPresentation(true)}
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                    title="Plein écran"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-
-              <div className="relative">
-                {fullscreenPresentation && (
-                  <button
-                    onClick={() => setFullscreenPresentation(false)}
-                    className="absolute top-2 right-2 z-10 p-2 bg-gray-900 bg-opacity-75 text-white rounded-lg hover:bg-opacity-90 transition-all"
-                    title="Quitter le plein écran"
-                  >
-                    <Minimize2 className="h-4 w-4" />
-                  </button>
-                )}
-
-                {module.presentation_type === 'powerpoint' ? (
-                  <iframe
-                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(module.presentation_url)}`}
-                    className={`w-full border rounded-lg ${
-                      fullscreenPresentation ? 'h-[calc(100vh-2rem)]' : 'h-96 lg:h-[600px]'
-                    }`}
-                    title="Visionneuse PowerPoint"
-                    frameBorder="0"
-                    loading="lazy"
-                  />
-                ) : (
-                  <iframe
-                    src={`${module.presentation_url}#toolbar=0&navpanes=0&scrollbar=1`}
-                    className={`w-full border rounded-lg ${
-                      fullscreenPresentation ? 'h-[calc(100vh-2rem)]' : 'h-96 lg:h-[600px]'
-                    }`}
-                    title="Visionneuse de présentation"
-                    frameBorder="0"
-                    loading="lazy"
-                  />
-                )}
-              </div>
-
-              {fullscreenPresentation && (
-                <div
-                  className="fixed inset-0 bg-black bg-opacity-50 -z-10"
-                  onClick={() => setFullscreenPresentation(false)}
-                />
-              )}
-            </div>
+          {module.presentation_url && module.presentation_type && (
+            <PresentationViewer
+              url={module.presentation_url}
+              type={module.presentation_type}
+              title={module.title}
+            />
           )}
 
           <div className="text-gray-700 text-sm sm:text-base">
-            {renderContent(module.content)}
+            <style>{`
+              .prose img {
+                max-width: 100% !important;
+                height: auto !important;
+                margin: 1.5rem 0 !important;
+                border-radius: 8px !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+              }
+            `}</style>
+            {renderContent(getTranslatedField(module, 'content', language))}
           </div>
         </div>
       </div>
 
       {/* Quiz Info */}
-      <div className="mt-6 sm:mt-8 bg-gray-50 rounded-lg p-4 sm:p-6">
+      <div className="mt-6 sm:mt-8 bg-orange-50 rounded-lg p-4 sm:p-6">
         <div className="flex items-start gap-4">
-          <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-black mt-1 flex-shrink-0" />
+          <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500 mt-1 flex-shrink-0" />
           <div>
-            <h3 className="font-semibold text-white mb-2 text-sm sm:text-base">Quiz de validation</h3>
-            <p className="text-white mb-3 text-sm">
-              Ce module comprend un quiz de 10 questions pour valider vos connaissances. 
-              Un score minimum de 80% est requis pour terminer le module.
+            <h3 className="font-semibold text-orange-900 mb-2 text-sm sm:text-base">{t('quiz_validation')}</h3>
+            <p className="text-orange-800 mb-3 text-sm">
+              {t('pass_score')}
             </p>
             <button
               onClick={() => setCurrentView('quiz')}
-              className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors text-sm w-full sm:w-auto"
+              className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm w-full sm:w-auto"
             >
-              {progress?.status === 'completed' ? 'Refaire le quiz' : 'Commencer le quiz'}
+              {progress?.status === 'completed' ? t('retake_quiz') : t('start_quiz')}
             </button>
           </div>
         </div>

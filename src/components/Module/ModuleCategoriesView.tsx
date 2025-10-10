@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import { Module, ModuleCategory } from '../../lib/supabase';
 import { CategoryService } from '../../services/categoryService';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslatedField } from '../../utils/translation';
 
 interface ModuleCategoriesViewProps {
   modules: Module[];
@@ -10,6 +12,7 @@ interface ModuleCategoriesViewProps {
 }
 
 export function ModuleCategoriesView({ modules, onCategorySelect, onModuleSelect }: ModuleCategoriesViewProps) {
+  const { t, language } = useLanguage();
   const [categoriesWithCount, setCategoriesWithCount] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,13 +23,13 @@ export function ModuleCategoriesView({ modules, onCategorySelect, onModuleSelect
   const loadCategoriesWithCounts = async () => {
     try {
       setLoading(true);
-
+      
       // Load categories from database
       const dbCategories = await CategoryService.getAllCategories();
-
+      
       // Count modules per category
       const categoryCount: Record<string, number> = {};
-
+      
       modules.forEach(module => {
         const categoryId = module.training_path_id || 'uncategorized';
         categoryCount[categoryId] = (categoryCount[categoryId] || 0) + 1;
@@ -100,25 +103,20 @@ export function ModuleCategoriesView({ modules, onCategorySelect, onModuleSelect
             <div className={`${category.color} h-2 rounded-t-lg`}></div>
 
             <div className="p-6 flex flex-col flex-1">
-              {/* En-tête avec icône et nombre de modules - hauteur fixe */}
-              <div className="flex items-center gap-4 mb-4 min-h-[4rem]">
+              {/* En-tête avec icône et nombre de modules */}
+              <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl flex-shrink-0">{category.icon}</div>
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-gray-900 group-hover:text-orange-600 transition-colors leading-tight">
-                    {category.name}
+                    {getTranslatedField(category, 'name', language)}
                   </h3>
                 </div>
               </div>
 
-              {/* Description - hauteur flexible */}
-              <p className="text-gray-600 mb-6 line-clamp-3 flex-1">
-                {category.description}
-              </p>
-
               {/* Footer - aligné en bas */}
               <div className="flex items-center justify-between mt-auto">
                 <div className={`px-3 py-1 rounded-full text-white text-sm ${category.color}`}>
-                  {category.moduleCount} modules
+                  {category.moduleCount} {t('modules')}
                 </div>
                 <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
               </div>
@@ -132,10 +130,10 @@ export function ModuleCategoriesView({ modules, onCategorySelect, onModuleSelect
         <div className="text-center py-12">
           <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Aucun module disponible
+            {t('no_modules_available')}
           </h3>
           <p className="text-gray-600">
-            Les modules de formation seront bientôt disponibles.
+            {t('modules_coming_soon')}
           </p>
         </div>
       )}

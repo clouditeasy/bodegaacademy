@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Settings, Save, AlertTriangle, Info, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SystemSettingsProps {
   onBack: () => void;
@@ -15,6 +16,7 @@ interface SystemConfig {
 }
 
 export function SystemSettings({ onBack }: SystemSettingsProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [config, setConfig] = useState<SystemConfig>({
@@ -34,7 +36,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
     try {
       // In a real app, these would be loaded from the database
       // For now, we'll use localStorage as a demo
-      const savedConfig = localStorage.getItem('bodega_system_config');
+      const savedConfig = localStorage.getItem('moojood_system_config');
       if (savedConfig) {
         setConfig(JSON.parse(savedConfig));
       }
@@ -49,7 +51,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
 
     try {
       // In a real app, these would be saved to the database
-      localStorage.setItem('bodega_system_config', JSON.stringify(config));
+      localStorage.setItem('moojood_system_config', JSON.stringify(config));
       
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -75,10 +77,10 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Retour à l'administration
+          <ArrowLeft className="h-5 w-5" />
+          {t('back_to_admin')}
         </button>
         
         <div className="flex justify-between items-center">
@@ -90,7 +92,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
           <button
             onClick={saveSettings}
             disabled={loading}
-            className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors flex items-center gap-2"
+            className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center gap-2"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -122,7 +124,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
         {/* Quiz Settings */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-6">
-            <Settings className="h-6 w-6 text-black" />
+            <Settings className="h-6 w-6 text-orange-500" />
             <h2 className="text-xl font-semibold text-gray-900">Paramètres des Quiz</h2>
           </div>
 
@@ -166,7 +168,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
                 id="max_quiz_attempts"
                 value={config.max_quiz_attempts}
                 onChange={(e) => handleConfigChange('max_quiz_attempts', parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value={1}>1 tentative</option>
                 <option value={2}>2 tentatives</option>
@@ -200,7 +202,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
                   checked={config.module_auto_progress}
                   onChange={(e) => handleConfigChange('module_auto_progress', e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-500"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
               </label>
             </div>
           </div>
@@ -225,7 +227,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
                   checked={config.email_notifications}
                   onChange={(e) => handleConfigChange('email_notifications', e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-500"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
               </label>
             </div>
 
@@ -243,7 +245,7 @@ export function SystemSettings({ onBack }: SystemSettingsProps) {
                   checked={config.registration_enabled}
                   onChange={(e) => handleConfigChange('registration_enabled', e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-500"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
               </label>
             </div>
 

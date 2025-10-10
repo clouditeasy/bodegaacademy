@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Play, CheckCircle, Clock, Trophy } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Clock, Trophy, Lock } from 'lucide-react';
 import { Module, UserProgress, ModuleCategory } from '../../lib/supabase';
-// import { CategoryService } from '../../services/categoryService'; // No longer needed
+import { CategoryService } from '../../services/categoryService';
+import { useAuth } from '../../hooks/useAuth';
+import { useModuleAccess } from '../../hooks/useModuleAccess';
+import { PathProgressIndicator } from './PathProgressIndicator';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslatedField } from '../../utils/translation';
 
 interface ModuleWithProgress extends Module {
   progress?: UserProgress;
@@ -20,12 +25,26 @@ export function CategoryModulesView({
   onBack,
   onModuleSelect
 }: CategoryModulesViewProps) {
+  const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [category, setCategory] = useState<ModuleCategory | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const categoryModules = modules.filter(module =>
-    module.training_path_id === categoryId ||
-    (categoryId === 'uncategorized' && !module.training_path_id)
+  // Filter modules - DO NOT SORT, order comes from database
+  const categoryModules = modules
+    .filter(module => {
+      // Support both old 'module_category' and new 'training_path_id' fields
+      const modulePathId = module.training_path_id || module.module_category;
+      const isUncategorized = !modulePathId;
+
+      return modulePathId === categoryId ||
+        (categoryId === 'uncategorized' && isUncategorized);
+    });
+
+  // Get module access status from database
+  const { isModuleLocked, loading: accessLoading } = useModuleAccess(
+    user?.id || '',
+    categoryId
   );
 
   useEffect(() => {
@@ -38,40 +57,49 @@ export function CategoryModulesView({
       if (categoryId === 'uncategorized') {
         setCategory(null);
       } else {
-        // Charger directement depuis la table training_paths au lieu du CategoryService
-        const { supabase } = await import('../../lib/supabase');
-        const { data, error } = await supabase
-          .from('training_paths')
-          .select('*')
-          .eq('id', categoryId)
-          .single();
-
-        if (error) throw error;
-        setCategory(data);
+        const categoryData = await CategoryService.getCategoryById(categoryId);
+        setCategory(categoryData);
       }
     } catch (error) {
-      console.error('Error loading training path:', error);
+      console.error('Error loading category:', error);
       setCategory(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusIcon = (progress?: UserProgress) => {
-    if (!progress || progress.status === 'not_started') {
+  const getStatusIcon = (moduleId: string, progress?: UserProgress) => {
+    const locked = isModuleLocked(moduleId);
+
+    if (locked) {
+      return <Lock className="h-5 w-5 text-gray-400" />;
+    } else if (!progress || progress.status === 'not_started') {
       return <Play className="h-5 w-5 text-gray-400" />;
     } else if (progress.status === 'completed') {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
     } else {
-      return <Clock className="h-5 w-5 text-orange-500" />;
+      return <Clock className="h-5 w-5 text-gray-900" />;
     }
   };
 
-  const getButtonText = (progress?: UserProgress) => {
-    if (!progress || progress.status === 'not_started') {
-      return 'Commencer';
+  const getButtonText = (moduleId: string, progress?: UserProgress) => {
+    const locked = isModuleLocked(moduleId);
+
+    if (locked) {
+      return t('locked');
+    } else if (!progress || progress.status === 'not_started') {
+      return t('start');
+    } else if (progress.status === 'completed') {
+      return t('restart');
     } else {
-      return 'Continuer';
+      return t('continue');
+    }
+  };
+
+  const handleModuleClick = (module: Module) => {
+    const locked = isModuleLocked(module.id);
+    if (!locked) {
+      onModuleSelect(module);
     }
   };
 
@@ -81,23 +109,24 @@ export function CategoryModulesView({
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Retour aux parcours
+          <ArrowLeft className="h-5 w-5" />
+          {t('back_to_dashboard')}
         </button>
 
         <div className="flex items-center gap-4 mb-4">
           {category && (
             <>
               <div className="text-5xl">{category.icon}</div>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {category.name}
+                  {getTranslatedField(category, 'name', language)}
                 </h1>
-                <p className="text-gray-600">
-                  {category.description}
-                </p>
+                <div
+                  className="text-gray-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: getTranslatedField(category, 'description', language) }}
+                />
               </div>
             </>
           )}
@@ -125,59 +154,83 @@ export function CategoryModulesView({
         </div>
       </div>
 
-      {/* Modules List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="divide-y">
-          {categoryModules.map((module) => (
-            <div key={module.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-start sm:items-center gap-3 mb-2 flex-wrap">
-                    {getStatusIcon(module.progress)}
-                    <h3 className="text-base sm:text-lg font-medium text-gray-900 flex-1 min-w-0">
-                      {module.title}
-                    </h3>
-                  </div>
-                  <p className="text-sm sm:text-base text-gray-600 mb-3 line-clamp-2">
-                    {module.description}
-                  </p>
-                  {module.progress && module.progress.score != null && (
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 flex-wrap">
-                      <Trophy className="h-4 w-4" />
-                      <span>Score: {module.progress.score}%</span>
-                      {module.progress.attempts > 1 && (
-                        <span>• {module.progress.attempts} tentatives</span>
-                      )}
-                    </div>
-                  )}
+      {/* Path Progress Indicator */}
+      {categoryModules.length > 0 && (
+        <PathProgressIndicator
+          modules={categoryModules.map(m => ({
+            ...m,
+            isLocked: isModuleLocked(m.id)
+          }))}
+          userId={user?.id || ''}
+        />
+      )}
+
+      {/* Modules Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {categoryModules.map((module) => {
+          const locked = isModuleLocked(module.id);
+
+          return (
+            <div
+              key={module.id}
+              className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden flex flex-col ${
+                locked ? 'opacity-75' : ''
+              }`}
+            >
+              <div className="p-4 sm:p-6 flex flex-col flex-1">
+                <div className="flex items-start gap-3 mb-3">
+                  {getStatusIcon(module.id, module.progress)}
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex-1">
+                    {getTranslatedField(module, 'title', language)}
+                  </h3>
                 </div>
+
+                <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                  {getTranslatedField(module, 'description', language)}
+                </p>
+
+                {module.progress && module.progress.score != null && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                    <Trophy className="h-4 w-4" />
+                    <span>Score: {module.progress.score}%</span>
+                  </div>
+                )}
+
+                {/* Spacer pour pousser le bouton en bas */}
+                <div className="flex-1"></div>
+
                 <button
-                  onClick={() => onModuleSelect(module)}
-                  className="bg-orange-500 text-white px-4 sm:px-6 py-2 sm:py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-28"
+                  onClick={() => handleModuleClick(module)}
+                  disabled={locked}
+                  className={`w-full px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 sm:w-[160px] ${
+                    locked
+                      ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : module.progress?.status === 'completed'
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }`}
                 >
-                  {module.progress?.status === 'completed' ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
+                  {locked ? (
+                    <Lock className="h-4 w-4" />
+                  ) : module.progress?.status === 'completed' ? null : (
+                    module.progress?.status === 'in_progress' ? (
+                      <Clock className="h-4 w-4" />
+                    ) : (
+                      <Play className="h-4 w-4" />
+                    )
                   )}
-                  {getButtonText(module.progress)}
+                  {getButtonText(module.id, module.progress)}
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* Empty State */}
       {categoryModules.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
+        <div className="text-center py-12">
           <div className="text-5xl mb-4">📚</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Aucun module dans ce parcours
-          </h3>
-          <p className="text-gray-600">
-            Les modules de ce parcours de formation seront bientôt disponibles.
-          </p>
+          <p className="text-gray-500">Aucun module dans cette catégorie</p>
         </div>
       )}
     </div>

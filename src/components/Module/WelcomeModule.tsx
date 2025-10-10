@@ -13,7 +13,7 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [loading, setLoading] = useState(false);
-
+  
   const totalSteps = 4;
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
 
       const status = completed ? 'completed' : 'in_progress';
       const score = completed ? 100 : null;
-
+      
       const progressData = {
         user_id: user.id,
         module_id: welcomeModule.id,
@@ -134,64 +134,59 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
 
   const getJobRoleDisplayName = (jobRole: string) => {
     const jobRoles: Record<string, string> = {
-      // Store Operations
-      'manager': 'Manager',
-      'supervisor': 'Supervisor',
-      'cashier': 'Cashier',
-      'sales_associate': 'Sales Associate',
-      'customer_service': 'Customer Service',
-      // Warehouse
-      'warehouse_manager': 'Warehouse Manager',
-      'inventory_specialist': 'Inventory Specialist',
-      'picker_packer': 'Picker/Packer',
-      'receiving_clerk': 'Receiving Clerk',
-      'shipping_clerk': 'Shipping Clerk',
-      // Corporate
-      'hr': 'Human Resources',
+      // Kouzina
+      'production': 'Production',
+      'commercialisation': 'Commercialisation', 
+      'qualite': 'Qualité',
+      'conformite': 'Conformité',
+      'emballage': 'Emballage',
+      'rh': 'Ressources Humaines',
       'admin': 'Administration',
-      'finance': 'Finance',
-      'marketing': 'Marketing',
-      'it_support': 'IT Support'
+      'comptabilite': 'Comptabilité',
+      // Points de Vente
+      'manager': 'Manager',
+      'serveur': 'Serveur',
+      'barista': 'Barista',
+      'commis_cuisine': 'Commis de Cuisine',
+      'chef_cuisine': 'Chef de Cuisine',
+      'livreur': 'Livreur'
     };
     return jobRoles[jobRole] || jobRole;
   };
 
   const getJobRoleWelcomeMessage = (jobRole: string) => {
     const messages: Record<string, string> = {
-      // Store Operations
-      'manager': 'As a Store Manager, you lead by example and ensure exceptional customer experiences. Explore our modules on leadership, operations management, and team development.',
+      // Kouzina (Cuisine Centrale)
+      'production': 'En tant que membre de l\'équipe Production, vous êtes au cœur de la création culinaire Bodega. Découvrez nos modules sur les techniques de préparation, l\'hygiène alimentaire et l\'optimisation des processus de production.',
 
-      'supervisor': 'Your supervisory role is key to daily operations success. Access our training on team coordination, process optimization, and quality assurance.',
+      'commercialisation': 'Votre rôle en Commercialisation est essentiel pour faire rayonner la marque Bodega. Accédez à nos formations en développement commercial, négociation avec les partenaires et stratégies de croissance.',
 
-      'cashier': 'You\'re the final touchpoint in our customer journey. Discover our modules on customer service excellence, payment processing, and upselling techniques.',
+      'qualite': 'En tant que responsable Qualité, vous garantissez l\'excellence de nos produits. Explorez nos modules sur les standards qualité, les audits, les certifications et les bonnes pratiques alimentaires.',
 
-      'sales_associate': 'You help customers find exactly what they need. Learn about product knowledge, sales techniques, and building lasting customer relationships.',
+      'conformite': 'Votre expertise en Conformité assure le respect des réglementations. Découvrez nos formations sur la réglementation alimentaire, la traçabilité et les normes d\'hygiène.',
 
-      'customer_service': 'You solve problems and create positive experiences. Access training on conflict resolution, communication skills, and service recovery.',
+      'emballage': 'L\'équipe Emballage donne la première impression de nos produits. Apprenez les techniques de conditionnement, les matériaux durables et la présentation optimale.',
 
-      // Warehouse
-      'warehouse_manager': 'You optimize our supply chain efficiency. Explore modules on warehouse operations, team management, and safety protocols.',
+      'rh': 'Vous façonnez la culture et l\'équipe Bodega. Explorez nos formations en gestion des talents, recrutement dans la restauration et développement des compétences.',
 
-      'inventory_specialist': 'Your accuracy keeps our operations flowing smoothly. Learn about inventory management systems, cycle counting, and demand forecasting.',
+      'admin': 'Votre support administratif est vital pour nos opérations. Accédez aux modules sur la gestion administrative, les outils numériques et l\'organisation efficace.',
 
-      'picker_packer': 'You ensure orders are fulfilled accurately and efficiently. Access training on picking accuracy, packaging standards, and safety procedures.',
+      'comptabilite': 'Votre expertise financière guide nos décisions stratégiques. Découvrez nos formations en comptabilité restaurant, analyse des coûts et contrôle budgétaire.',
 
-      'receiving_clerk': 'You\'re the first line in our supply chain. Learn about receiving procedures, quality inspection, and inventory tracking.',
+      // Points de Vente
+      'manager': 'En tant que Manager, vous dirigez l\'expérience client au quotidien. Explorez nos modules sur le leadership, la gestion d\'équipe restaurant et l\'optimisation des performances.',
 
-      'shipping_clerk': 'You ensure orders reach customers on time. Discover modules on shipping procedures, carrier management, and delivery tracking.',
+      'serveur': 'Vous êtes l\'ambassadeur de l\'expérience Bodega auprès de nos clients. Découvrez nos formations en service excellence, techniques de vente et relation client.',
 
-      // Corporate
-      'hr': 'You shape our company culture and develop our people. Explore training on talent management, employee relations, and HR best practices.',
+      'barista': 'Votre art du café fait la différence dans l\'expérience client. Accédez à nos modules sur les techniques barista, la culture du café et la création de boissons signature.',
 
-      'admin': 'Your administrative support keeps everything running smoothly. Access modules on office management, communication tools, and process efficiency.',
+      'commis_cuisine': 'Vous êtes la base solide de notre cuisine. Apprenez les fondamentaux culinaires, l\'hygiène en cuisine et les techniques de préparation Bodega.',
 
-      'finance': 'Your financial expertise guides our strategic decisions. Learn about budgeting, financial analysis, and reporting standards.',
+      'chef_cuisine': 'Votre créativité culinaire définit notre identité gustative. Explorez nos modules sur l\'innovation culinaire, la gestion de cuisine et les standards Bodega.',
 
-      'marketing': 'You build our brand and attract customers. Discover modules on marketing strategy, digital marketing, and customer engagement.',
-
-      'it_support': 'You keep our technology infrastructure running. Access training on system maintenance, user support, and security protocols.'
+      'livreur': 'Vous complétez l\'expérience Bodega jusqu\'à domicile. Découvrez nos formations sur la logistique de livraison, le service client mobile et la sécurité routière.'
     };
-    return messages[jobRole] || 'We\'re excited to welcome you to the Bodega Academy family and support you on your personalized learning journey.';
+    return messages[jobRole] || 'Nous sommes ravis de vous accueillir dans la famille Bodega et de vous accompagner dans votre parcours de formation personnalisé.';
   };
 
   return (
@@ -199,27 +194,29 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 bg-orange-500 rounded-lg flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">BA</span>
-          </div>
+          <img
+            src="/logo-bodega.jpg"
+            alt="Bodega Academy Logo"
+            className="w-20 h-20 mx-auto mb-4 rounded-lg"
+          />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome Module
+            Module de Bienvenue
           </h1>
           <p className="text-gray-600">
-            Your first step towards excellence
+            Votre première étape vers l'excellence
           </p>
         </div>
 
         {/* Progress */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Progress</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Progression</h3>
             <span className="text-sm text-gray-500">
-              Step {currentStep} of {totalSteps}
+              Étape {currentStep} sur {totalSteps}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
+            <div 
               className="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             />
@@ -234,24 +231,24 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
                 <Star className="h-10 w-10 text-orange-500" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Welcome {userProfile?.full_name}!
+                Bienvenue {userProfile?.full_name} !
               </h2>
               <p className="text-gray-600 mb-8 text-lg">
-                We're excited to welcome you to the Bodega Academy family.
-                This welcome module will introduce you to our training approach
-                and guide you to the resources best suited for your role.
+                Nous sommes ravis de vous accueillir dans la famille Bodega Academy.
+                Ce module de bienvenue vous présentera notre approche de la formation
+                et vous guidera vers les ressources les plus adaptées à votre rôle.
               </p>
               <div className="bg-orange-50 p-6 rounded-lg mb-8">
-                <h3 className="font-semibold text-gray-900 mb-4">Your profile:</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Votre profil :</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                   <div>
-                    <span className="text-gray-600">Role:</span>
+                    <span className="text-gray-600">Métier :</span>
                     <p className="font-medium text-gray-900">
                       {getJobRoleDisplayName(userProfile?.job_role)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-600">Department:</span>
+                    <span className="text-gray-600">Département :</span>
                     <p className="font-medium text-gray-900">
                       {userProfile?.department}
                     </p>
@@ -264,7 +261,7 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
           {currentStep === 2 && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                Your Personalized Journey
+                Votre Parcours Personnalisé
               </h2>
               <div className="mb-8">
                 <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg mb-6">
@@ -280,22 +277,22 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
                     <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                       <CheckCircle className="h-6 w-6 text-blue-500" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Required Modules</h4>
-                    <p className="text-sm text-gray-600">Essential training for everyone</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">Modules Obligatoires</h4>
+                    <p className="text-sm text-gray-600">Formations essentielles pour tous</p>
                   </div>
                   <div className="text-center p-4 border border-gray-200 rounded-lg">
                     <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Star className="h-6 w-6 text-green-500" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Role-Specific Modules</h4>
-                    <p className="text-sm text-gray-600">Specialized for your position</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">Modules Métier</h4>
+                    <p className="text-sm text-gray-600">Spécialisés pour votre rôle</p>
                   </div>
                   <div className="text-center p-4 border border-gray-200 rounded-lg">
                     <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Play className="h-6 w-6 text-purple-500" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Optional Modules</h4>
-                    <p className="text-sm text-gray-600">To expand your skills</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">Modules Optionnels</h4>
+                    <p className="text-sm text-gray-600">Pour approfondir vos compétences</p>
                   </div>
                 </div>
               </div>
@@ -305,7 +302,7 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
           {currentStep === 3 && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                How It Works
+                Comment ça marche ?
               </h2>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
@@ -313,9 +310,9 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
                     1
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Follow your recommended modules</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">Suivez vos modules recommandés</h3>
                     <p className="text-gray-600">
-                      Your dashboard shows priority training based on your profile.
+                      Votre dashboard vous présente les formations prioritaires selon votre profil.
                     </p>
                   </div>
                 </div>
@@ -324,9 +321,9 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
                     2
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Learn at your own pace</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">Apprenez à votre rythme</h3>
                     <p className="text-gray-600">
-                      Each module combines videos, documents, and interactive quizzes.
+                      Chaque module combine vidéos, documents et quiz interactifs.
                     </p>
                   </div>
                 </div>
@@ -335,9 +332,9 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
                     3
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Validate your knowledge</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">Validez vos acquis</h3>
                     <p className="text-gray-600">
-                      Earn certificates and track your progress in real-time.
+                      Obtenez vos certificats et suivez votre progression en temps réel.
                     </p>
                   </div>
                 </div>
@@ -351,18 +348,18 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
                 <CheckCircle className="h-10 w-10 text-green-500" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Congratulations!
+                Félicitations !
               </h2>
               <p className="text-gray-600 mb-8 text-lg">
-                You've completed your welcome module.
-                You're now ready to begin your personalized training journey.
+                Vous avez terminé votre module de bienvenue. 
+                Vous êtes maintenant prêt(e) à commencer votre parcours de formation personnalisé.
               </p>
               <div className="bg-orange-50 p-6 rounded-lg mb-8">
-                <h3 className="font-semibold text-gray-900 mb-2">Next steps:</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Prochaines étapes :</h3>
                 <ul className="text-left text-gray-600 space-y-2">
-                  <li>✓ Access your personalized dashboard</li>
-                  <li>✓ Discover your recommended modules</li>
-                  <li>✓ Start with priority training</li>
+                  <li>✓ Accédez à votre dashboard personnalisé</li>
+                  <li>✓ Découvrez vos modules recommandés</li>
+                  <li>✓ Commencez par les formations prioritaires</li>
                 </ul>
               </div>
             </div>
@@ -374,13 +371,13 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
               <button
                 onClick={() => updateProgress(currentStep)}
                 disabled={loading}
-                className="bg-orange-500 text-white px-8 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    Continue
+                    Continuer
                     <ArrowRight className="h-5 w-5" />
                   </>
                 )}
@@ -396,7 +393,7 @@ export function WelcomeModule({ onComplete, userProfile }: WelcomeModuleProps) {
                 ) : (
                   <>
                     <CheckCircle className="h-5 w-5" />
-                    Complete Module
+                    Terminer le module
                   </>
                 )}
               </button>

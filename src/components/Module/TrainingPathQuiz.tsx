@@ -48,7 +48,7 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
 
       // Vérifier si l'utilisateur a déjà terminé tous les modules
       const completedAllModules = await TrainingPathService.hasUserCompletedAllModules(user.id, trainingPathId);
-
+      
       if (!completedAllModules) {
         setError('Vous devez terminer tous les modules du parcours avant de passer le quiz final.');
         return;
@@ -117,7 +117,7 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
       setError(null);
 
       await TrainingPathService.submitTrainingPathQuiz(user.id, trainingPathId, answers, score);
-
+      
       if (score >= quiz.passing_score) {
         onComplete();
       }
@@ -136,7 +136,7 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
 
   const handleRetryQuiz = () => {
     if (!quiz) return;
-
+    
     setCurrentQuestionIndex(0);
     setAnswers(new Array(quiz.questions.length).fill(-1));
     setSelectedAnswer(null);
@@ -159,9 +159,9 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-6 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           Retour au parcours
         </button>
 
@@ -183,9 +183,9 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-6 transition-colors font-medium shadow-md hover:shadow-lg"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           Retour au parcours
         </button>
 
@@ -230,13 +230,13 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
                 <XCircle className="w-16 h-16 text-red-500" />
               )}
             </div>
-
+            
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {passed ? 'Félicitations !' : 'Quiz non réussi'}
             </h1>
-
+            
             <p className="text-lg text-gray-600 mb-6">
-              {passed
+              {passed 
                 ? `Vous avez terminé avec succès le parcours "${trainingPathName}"`
                 : `Vous avez obtenu ${score}% (minimum requis: ${quiz.passing_score}%)`
               }
@@ -281,7 +281,7 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
                   Nombre maximum de tentatives atteint
                 </div>
               )}
-
+              
               <button
                 onClick={handleSubmitQuiz}
                 disabled={submitting}
@@ -306,7 +306,7 @@ export function TrainingPathQuiz({ trainingPathId, trainingPathName, onBack, onC
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
+              <div 
                 className="bg-indigo-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%` }}
               />

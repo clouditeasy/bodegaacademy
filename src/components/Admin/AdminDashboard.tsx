@@ -9,8 +9,11 @@ import { SystemSettings } from './SystemSettings';
 import { DatabaseMigration } from './DatabaseMigration';
 import { CategoryManagement } from './CategoryManagement';
 import { CategoryService } from '../../services/categoryService';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslatedField } from '../../utils/translation';
 
 export function AdminDashboard() {
+  const { t, language } = useLanguage();
   const [modules, setModules] = useState<Module[]>([]);
   const [categories, setCategories] = useState<TrainingPath[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -95,7 +98,7 @@ export function AdminDashboard() {
   };
 
   const handleDeleteModule = async (moduleId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce module ?')) {
+    if (!confirm(t('confirm_delete_module'))) {
       return;
     }
 
@@ -156,9 +159,9 @@ export function AdminDashboard() {
 
   // Obtenir le nom de la catégorie
   const getCategoryName = (categoryId: string) => {
-    if (categoryId === 'uncategorized') return 'Sans catégorie';
+    if (categoryId === 'uncategorized') return t('no_category') || 'Sans catégorie';
     const category = categories.find(c => c.id === categoryId);
-    return category ? `${category.icon} ${category.name}` : 'Catégorie inconnue';
+    return category ? `${category.icon} ${getTranslatedField(category, 'name', language)}` : t('unknown_category') || 'Catégorie inconnue';
   };
 
   if (loading) {
@@ -223,36 +226,36 @@ export function AdminDashboard() {
             className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Suivi des progressions</span>
-            <span className="sm:hidden">Suivi</span>
+            <span className="hidden sm:inline">{t('progress_tracking')}</span>
+            <span className="sm:hidden">{t('progress_tracking').split(' ')[0]}</span>
           </button>
           <button
             onClick={() => setCurrentView('users')}
             className="bg-purple-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <UserCheck className="h-4 w-4" />
-            Utilisateurs
+            {t('users')}
           </button>
           <button
             onClick={() => setCurrentView('analytics')}
             className="bg-green-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <BarChart3 className="h-4 w-4" />
-            Analytics
+            {t('analytics')}
           </button>
           <button
             onClick={() => setCurrentView('settings')}
             className="bg-gray-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <Settings className="h-4 w-4" />
-            Paramètres
+            {t('settings')}
           </button>
           <button
             onClick={() => setCurrentView('training-paths')}
             className="bg-indigo-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <Grid3X3 className="h-4 w-4" />
-            Parcours
+            {t('training_paths')}
           </button>
           <button
             onClick={() => {
@@ -262,8 +265,8 @@ export function AdminDashboard() {
             className="bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nouveau module</span>
-            <span className="sm:hidden">Nouveau</span>
+            <span className="hidden sm:inline">{t('new_module')}</span>
+            <span className="sm:hidden">{t('new_module').split(' ')[0]}</span>
           </button>
         </div>
       </div>
@@ -271,30 +274,30 @@ export function AdminDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <div className="flex items-center">
+          <div className="flex items-center gap-3 sm:gap-4">
             <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
-            <div className="ml-3 sm:ml-4">
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Total Modules</p>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">{t('total_modules')}</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalModules}</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <div className="flex items-center">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Users className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 flex-shrink-0" />
-            <div className="ml-3 sm:ml-4">
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Utilisateurs</p>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">{t('users')}</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4 sm:p-6 col-span-1 sm:col-span-3 lg:col-span-1">
-          <div className="flex items-center">
+          <div className="flex items-center gap-3 sm:gap-4">
             <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 flex-shrink-0" />
-            <div className="ml-3 sm:ml-4">
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Taux de réussite</p>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">{t('completion_rate')}</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.completionRate}%</p>
             </div>
           </div>
@@ -305,12 +308,12 @@ export function AdminDashboard() {
       <div className="bg-white rounded-lg shadow">
         <div className="px-4 sm:px-6 py-4 border-b">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Modules de formation</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('training_modules')}</h2>
 
             {/* Category Filter */}
             <div className="flex items-center gap-3">
               <label htmlFor="category-filter" className="text-sm font-medium text-gray-700">
-                Catégorie:
+                {t('category_label')}:
               </label>
               <select
                 id="category-filter"
@@ -318,13 +321,13 @@ export function AdminDashboard() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option value="">Toutes les catégories</option>
+                <option value="">{t('all_categories') || 'Toutes les catégories'}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.icon} {category.name}
+                    {category.icon} {getTranslatedField(category, 'name', language)}
                   </option>
                 ))}
-                <option value="uncategorized">Sans catégorie</option>
+                <option value="uncategorized">{t('no_category') || 'Sans catégorie'}</option>
               </select>
             </div>
           </div>
@@ -335,8 +338,8 @@ export function AdminDashboard() {
             <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-sm sm:text-base text-gray-500 mb-4">
               {selectedCategory
-                ? 'Aucun module dans cette catégorie'
-                : 'Aucun module créé pour le moment'
+                ? t('no_module_in_category')
+                : t('no_module_yet')
               }
             </p>
             {!selectedCategory && (
@@ -347,7 +350,7 @@ export function AdminDashboard() {
                 }}
                 className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm sm:text-base"
               >
-                Créer le premier module
+                {t('create_first_module')}
               </button>
             )}
           </div>
@@ -360,13 +363,13 @@ export function AdminDashboard() {
                   <div className="flex-1">
                     <div className="flex items-start sm:items-center gap-3 mb-2 flex-wrap">
                       <h3 className="text-base sm:text-lg font-medium text-gray-900 flex-1 min-w-0">
-                        {module.title}
+                        {getTranslatedField(module, 'title', language)}
                       </h3>
                     </div>
-                    <p className="text-sm sm:text-base text-gray-600 mb-2 line-clamp-2">{module.description}</p>
+                    <p className="text-sm sm:text-base text-gray-600 mb-2 line-clamp-2">{getTranslatedField(module, 'description', language)}</p>
                     <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 flex-wrap">
-                      <span>{module.quiz_questions.length} questions</span>
-                      <span>Créé le {new Date(module.created_at).toLocaleDateString()}</span>
+                      <span>{module.quiz_questions.length} {t('questions')}</span>
+                      <span>{t('created_on')} {new Date(module.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
 
@@ -376,7 +379,7 @@ export function AdminDashboard() {
                         ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {module.is_active ? 'Actif' : 'Inactif'}
+                      {module.is_active ? t('active') : t('inactive')}
                     </span>
                     <button
                       onClick={() => handleToggleActive(module.id, module.is_active)}
@@ -386,7 +389,7 @@ export function AdminDashboard() {
                           : 'bg-green-100 text-green-700 hover:bg-green-200'
                       }`}
                     >
-                      {module.is_active ? 'Désactiver' : 'Activer'}
+                      {module.is_active ? t('deactivate') : t('activate')}
                     </button>
 
                     <button
@@ -395,7 +398,7 @@ export function AdminDashboard() {
                         setCurrentView('form');
                       }}
                       className="p-2 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                      title="Modifier"
+                      title={t('edit')}
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -403,7 +406,7 @@ export function AdminDashboard() {
                     <button
                       onClick={() => handleDeleteModule(module.id)}
                       className="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                      title="Supprimer"
+                      title={t('delete')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -418,13 +421,13 @@ export function AdminDashboard() {
             {Object.entries(groupedModules).map(([categoryId, categoryModules]) => (
               <div key={categoryId} className="border-b last:border-b-0">
                 {/* Category Header */}
-                <div className="bg-gray-50 px-4 sm:px-6 py-3 border-b">
+                <div className="bg-gray-900 px-4 sm:px-6 py-3 border-b">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm sm:text-base font-medium text-gray-900">
+                    <h3 className="text-sm sm:text-base font-semibold text-white">
                       {getCategoryName(categoryId)}
                     </h3>
-                    <span className="text-xs sm:text-sm text-gray-500">
-                      {categoryModules.length} module{categoryModules.length > 1 ? 's' : ''}
+                    <span className="text-xs sm:text-sm text-gray-200">
+                      {categoryModules.length} {t('category_modules')}
                     </span>
                   </div>
                 </div>
@@ -437,13 +440,13 @@ export function AdminDashboard() {
                         <div className="flex-1">
                           <div className="flex items-start sm:items-center gap-3 mb-2 flex-wrap">
                             <h4 className="text-base sm:text-lg font-medium text-gray-900 flex-1 min-w-0">
-                              {module.title}
+                              {getTranslatedField(module, 'title', language)}
                             </h4>
                           </div>
-                          <p className="text-sm sm:text-base text-gray-600 mb-2 line-clamp-2">{module.description}</p>
+                          <p className="text-sm sm:text-base text-gray-600 mb-2 line-clamp-2">{getTranslatedField(module, 'description', language)}</p>
                           <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 flex-wrap">
-                            <span>{module.quiz_questions.length} questions</span>
-                            <span>Créé le {new Date(module.created_at).toLocaleDateString()}</span>
+                            <span>{module.quiz_questions.length} {t('questions')}</span>
+                            <span>{t('created_on')} {new Date(module.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>
 
@@ -453,7 +456,7 @@ export function AdminDashboard() {
                               ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}>
-                            {module.is_active ? 'Actif' : 'Inactif'}
+                            {module.is_active ? t('active') : t('inactive')}
                           </span>
                           <button
                             onClick={() => handleToggleActive(module.id, module.is_active)}
@@ -463,7 +466,7 @@ export function AdminDashboard() {
                                 : 'bg-green-100 text-green-700 hover:bg-green-200'
                             }`}
                           >
-                            {module.is_active ? 'Désactiver' : 'Activer'}
+                            {module.is_active ? t('deactivate') : t('activate')}
                           </button>
 
                           <button
@@ -472,7 +475,7 @@ export function AdminDashboard() {
                               setCurrentView('form');
                             }}
                             className="p-2 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                            title="Modifier"
+                            title={t('edit')}
                           >
                             <Edit className="h-4 w-4" />
                           </button>
@@ -480,7 +483,7 @@ export function AdminDashboard() {
                           <button
                             onClick={() => handleDeleteModule(module.id)}
                             className="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                            title="Supprimer"
+                            title={t('delete')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
