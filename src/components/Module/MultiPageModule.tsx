@@ -139,13 +139,18 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
     }
   };
 
-  const handlePageComplete = () => {
+  const handlePageComplete = async () => {
     const newCompleted = new Set(completedPages);
     newCompleted.add(currentPageIndex);
     setCompletedPages(newCompleted);
 
     // Sauvegarder dans la base de données
-    saveProgress(newCompleted, pageScores);
+    await saveProgress(newCompleted, pageScores);
+
+    // Vérifier si toutes les pages sont complétées
+    if (newCompleted.size === pages.length) {
+      await markModuleAsCompleted(pageScores);
+    }
 
     // Afficher notification si page suivante déverrouillée
     if (currentPageIndex < pages.length - 1) {
