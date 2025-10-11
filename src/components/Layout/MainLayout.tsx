@@ -13,6 +13,8 @@ export function MainLayout() {
   const [currentView, setCurrentView] = useState<View | null>(null);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [previousDashboardView, setPreviousDashboardView] = useState<'categories' | 'category' | 'modules'>('categories');
+  const [previousCategoryId, setPreviousCategoryId] = useState<string>('');
 
   useEffect(() => {
     if (userProfile && !loading && !isInitialized) {
@@ -23,14 +25,18 @@ export function MainLayout() {
   }, [userProfile, loading, isInitialized]);
 
 
-  const handleSelectModule = (module: Module) => {
+  const handleSelectModule = (module: Module, dashboardView: 'categories' | 'category' | 'modules', categoryId: string) => {
     setSelectedModule(module);
     setCurrentView('module');
+    // Sauvegarder l'état du dashboard pour le retour
+    setPreviousDashboardView(dashboardView);
+    setPreviousCategoryId(categoryId);
   };
 
   const handleBackToDashboard = () => {
     setSelectedModule(null);
     setCurrentView('dashboard');
+    // Ne pas réinitialiser previousDashboardView et previousCategoryId pour que le dashboard revienne à la vue précédente
   };
 
   const handleViewChange = (view: 'dashboard' | 'admin') => {
@@ -58,15 +64,19 @@ export function MainLayout() {
       
       <main>
         {currentView === 'dashboard' && (
-          <EmployeeDashboard onSelectModule={handleSelectModule} />
+          <EmployeeDashboard
+            onSelectModule={handleSelectModule}
+            initialView={previousDashboardView}
+            initialCategoryId={previousCategoryId}
+          />
         )}
-        
+
         {currentView === 'admin' && (
           <AdminDashboard />
         )}
-        
+
         {currentView === 'module' && selectedModule && (
-          <ModulePage 
+          <ModulePage
             module={selectedModule}
             onBack={handleBackToDashboard}
           />

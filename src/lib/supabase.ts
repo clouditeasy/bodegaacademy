@@ -50,6 +50,8 @@ export type Module = {
   presentation_type?: 'pdf' | 'powerpoint';
   presentation_type_ar?: 'pdf' | 'powerpoint';  // Type présentation arabe
   quiz_questions: QuizQuestion[];
+  has_multiple_pages?: boolean;  // Si true, le module utilise le système multi-pages
+  pages?: ModulePage[];  // Pages du module si has_multiple_pages est true
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -68,6 +70,24 @@ export type QuizQuestion = {
   options: string[];
   options_ar?: string[];  // Options en arabe
   correct: number;
+};
+
+export type ModulePage = {
+  id?: string;
+  module_id?: string;
+  title: string;
+  title_ar?: string;
+  content: string;
+  content_ar?: string;
+  video_url?: string;
+  presentation_url?: string;
+  presentation_type?: 'pdf' | 'powerpoint';
+  has_quiz: boolean;
+  quiz_optional?: boolean; // Si true, le quiz n'est pas obligatoire pour passer à la page suivante
+  quiz_questions: QuizQuestion[];
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type UserProgress = {

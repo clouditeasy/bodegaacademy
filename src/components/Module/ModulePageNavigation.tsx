@@ -6,8 +6,9 @@ interface ModulePageNavigationProps {
   pages: ModulePage[];
   currentPageIndex: number;
   completedPages: Set<number>;
-  onPageChange: (pageIndex: number) => void;
+  onPageChange: (pageIndex: number) => void | Promise<void>;
   canAccessPage: (pageIndex: number) => boolean;
+  onFinish?: () => void | Promise<void>;
 }
 
 export function ModulePageNavigation({
@@ -15,7 +16,8 @@ export function ModulePageNavigation({
   currentPageIndex,
   completedPages,
   onPageChange,
-  canAccessPage
+  canAccessPage,
+  onFinish
 }: ModulePageNavigationProps) {
   const handlePrevious = () => {
     if (currentPageIndex > 0) {
@@ -95,25 +97,26 @@ export function ModulePageNavigation({
           <span className="hidden sm:inline">Précédent</span>
         </button>
 
-        <button
-          onClick={handleNext}
-          disabled={currentPageIndex === pages.length - 1 || !canAccessPage(currentPageIndex + 1)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 hover:bg-gray-100"
-        >
-          <span className="hidden sm:inline">Suivant</span>
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {currentPageIndex === pages.length - 1 && onFinish ? (
+          <button
+            onClick={onFinish}
+            className="flex items-center gap-2 px-6 py-2 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-700 font-medium"
+          >
+            <CheckCircle className="h-5 w-5" />
+            <span>Terminer</span>
+          </button>
+        ) : (
+          <button
+            onClick={handleNext}
+            disabled={currentPageIndex === pages.length - 1 || !canAccessPage(currentPageIndex + 1)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 hover:bg-gray-100"
+          >
+            <span className="hidden sm:inline">Suivant</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
-      {/* Current page info */}
-      {!canAccessPage(currentPageIndex + 1) && currentPageIndex < pages.length - 1 && (
-        <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-          <p className="text-sm text-orange-800">
-            <Lock className="h-4 w-4 inline mr-1" />
-            Complétez cette page {pages[currentPageIndex]?.has_quiz && 'et son quiz'} pour déverrouiller la suivante
-          </p>
-        </div>
-      )}
     </div>
   );
 }

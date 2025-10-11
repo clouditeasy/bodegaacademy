@@ -119,21 +119,40 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
   const canAccessPage = (pageIndex: number): boolean => {
     if (pageIndex === 0) return true;
 
-    // Pour accéder à une page, il faut avoir complété la page précédente
-    const previousPage = pages[pageIndex - 1];
-    if (!previousPage) return false;
+    // Vérifier l'accès à la page immédiatement suivante
+    if (pageIndex === currentPageIndex + 1) {
+      const currentHasQuiz = currentPage?.has_quiz;
 
-    // Si la page précédente a un quiz, il faut l'avoir réussi
-    if (previousPage.has_quiz) {
-      return completedPages.has(pageIndex - 1);
+      // Si la page actuelle a un quiz, il faut l'avoir réussi (tous les quiz sont obligatoires)
+      if (currentHasQuiz) {
+        return completedPages.has(currentPageIndex);
+      }
+      // Sinon, on peut accéder à la page suivante directement
+      return true;
     }
 
-    // Sinon, juste avoir vu la page précédente
-    return completedPages.has(pageIndex - 1);
+    // Pour les autres pages, vérifier toutes les pages avec quiz
+    for (let i = 0; i < pageIndex; i++) {
+      const page = pages[i];
+      if (page.has_quiz && !completedPages.has(i)) {
+        return false;
+      }
+    }
+
+    return true;
   };
 
-  const handlePageChange = (pageIndex: number) => {
+  const handlePageChange = async (pageIndex: number) => {
     if (canAccessPage(pageIndex)) {
+      // Si on navigue vers une page suivante et que la page actuelle n'est pas complétée
+      // Marquer comme complétée seulement si la page n'a PAS de quiz
+      // (tous les quiz sont obligatoires)
+      if (pageIndex > currentPageIndex && !completedPages.has(currentPageIndex)) {
+        if (!currentPage.has_quiz) {
+          await handlePageComplete();
+        }
+      }
+
       setCurrentPageIndex(pageIndex);
       setCurrentView('content');
     }
@@ -230,6 +249,19 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
     } catch (error) {
       console.error('Error marking module as completed:', error);
     }
+  };
+
+  const handleFinish = async () => {
+    // Marquer la dernière page comme complétée si elle n'a pas de quiz
+    // (tous les quiz sont obligatoires et doivent être réussis)
+    if (!completedPages.has(currentPageIndex)) {
+      if (!currentPage.has_quiz) {
+        await handlePageComplete();
+      }
+    }
+
+    // Retourner au parcours de formation
+    onBack();
   };
 
   const renderContent = (content: string) => {
@@ -366,25 +398,26 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-6">
-          {currentPage.has_quiz && (
+        {currentPage.has_quiz && (
+          <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="flex-1">
+                <h3 className="font-semibold text-orange-900 mb-1">
+                  Quiz obligatoire
+                </h3>
+                <p className="text-sm text-orange-800">
+                  Vous devez réussir ce quiz avec un score de 80% minimum pour passer à la page suivante.
+                </p>
+              </div>
+            </div>
             <button
               onClick={() => setCurrentView('quiz')}
-              className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+              className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm"
             >
               {pageScores.has(currentPageIndex) ? t('retake_quiz') : t('start_quiz')}
             </button>
-          )}
-
-          {!currentPage.has_quiz && !completedPages.has(currentPageIndex) && (
-            <button
-              onClick={handlePageComplete}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
-            >
-              {t('mark_as_read')}
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Page Navigation - Bottom */}
@@ -395,6 +428,7 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
           completedPages={completedPages}
           onPageChange={handlePageChange}
           canAccessPage={canAccessPage}
+          onFinish={handleFinish}
         />
       </div>
     </div>

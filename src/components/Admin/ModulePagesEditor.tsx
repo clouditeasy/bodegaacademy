@@ -364,6 +364,18 @@ export function ModulePagesEditor({ pages, onChange, moduleId }: ModulePagesEdit
                       </button>
                     </div>
 
+                    {/* Info message when quiz exists */}
+                    {page.has_quiz && (
+                      <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <p className="text-sm text-orange-900 font-medium">
+                          ⚠️ Ce quiz sera obligatoire
+                        </p>
+                        <p className="text-xs text-orange-700 mt-1">
+                          Les utilisateurs devront réussir ce quiz (80%+) pour passer à la page suivante
+                        </p>
+                      </div>
+                    )}
+
                     {page.quiz_questions.length === 0 ? (
                       <p className="text-sm text-gray-500 italic">{t('module_pages_editor.no_questions')}</p>
                     ) : (
