@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, GripVertical, ArrowUp, ArrowDown, Edit2, Save, X } from 'lucide-react';
-import { ModulePage, QuizQuestion } from '../../lib/supabase';
+import { ModulePage, QuizQuestion, supabase } from '../../lib/supabase';
 import { RichTextEditor } from './RichTextEditor';
 import { VideoUpload } from './VideoUpload';
 import { PresentationUpload } from './PresentationUpload';
@@ -9,10 +9,36 @@ import { useTranslation } from '../../hooks/useTranslation';
 interface ModulePagesEditorProps {
   pages: ModulePage[];
   onChange: (pages: ModulePage[]) => void;
+  moduleId?: string;
 }
 
-export function ModulePagesEditor({ pages, onChange }: ModulePagesEditorProps) {
+export function ModulePagesEditor({ pages, onChange, moduleId }: ModulePagesEditorProps) {
   const { t } = useTranslation();
+
+  // Fonction pour sauvegarder immédiatement dans la BDD
+  const savePagesToDB = async (updatedPages: ModulePage[]) => {
+    if (moduleId) {
+      try {
+        console.log('[ModulePagesEditor] Sauvegarde immédiate des pages pour module:', moduleId);
+        console.log('[ModulePagesEditor] Données à sauvegarder:', JSON.stringify(updatedPages, null, 2));
+
+        const { error, data } = await supabase
+          .from('modules')
+          .update({
+            pages: updatedPages,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', moduleId)
+          .select();
+
+        if (error) throw error;
+        console.log('[ModulePagesEditor] Pages sauvegardées avec succès dans la BDD');
+        console.log('[ModulePagesEditor] Données retournées par Supabase:', data);
+      } catch (error) {
+        console.error('[ModulePagesEditor] Erreur lors de la sauvegarde des pages:', error);
+      }
+    }
+  };
   const [editingPageIndex, setEditingPageIndex] = useState<number | null>(null);
   const [expandedPageIndex, setExpandedPageIndex] = useState<number | null>(null);
   const [pageLanguageTab, setPageLanguageTab] = useState<{ [key: number]: 'fr' | 'ar' }>({});
@@ -52,10 +78,15 @@ export function ModulePagesEditor({ pages, onChange }: ModulePagesEditorProps) {
     onChange(newPages);
   };
 
-  const updatePage = (index: number, updates: Partial<ModulePage>) => {
+  const updatePage = async (index: number, updates: Partial<ModulePage>) => {
     const newPages = [...pages];
     newPages[index] = { ...newPages[index], ...updates };
     onChange(newPages);
+
+    // Sauvegarder immédiatement dans la BDD si c'est une suppression de vidéo/présentation
+    if ('video_url' in updates || 'presentation_url' in updates) {
+      await savePagesToDB(newPages);
+    }
   };
 
   const addQuestionToPage = (pageIndex: number) => {
@@ -230,8 +261,8 @@ export function ModulePagesEditor({ pages, onChange }: ModulePagesEditorProps) {
                         </label>
                         <VideoUpload
                           onVideoUploaded={(url) => updatePage(pageIndex, { video_url: url })}
-                          currentVideoUrl={page.video_url}
-                          onRemoveVideo={() => updatePage(pageIndex, { video_url: undefined })}
+                          currentVideoUrl={page.video_url || ''}
+                          onRemoveVideo={() => updatePage(pageIndex, { video_url: '' })}
                         />
                       </div>
 
@@ -245,11 +276,11 @@ export function ModulePagesEditor({ pages, onChange }: ModulePagesEditorProps) {
                             presentation_url: url,
                             presentation_type: type
                           })}
-                          currentPresentationUrl={page.presentation_url}
+                          currentPresentationUrl={page.presentation_url || ''}
                           currentPresentationType={page.presentation_type}
                           onRemovePresentation={() => updatePage(pageIndex, {
-                            presentation_url: undefined,
-                            presentation_type: undefined
+                            presentation_url: '',
+                            presentation_type: ''
                           })}
                         />
                       </div>
@@ -287,8 +318,8 @@ export function ModulePagesEditor({ pages, onChange }: ModulePagesEditorProps) {
                         </label>
                         <VideoUpload
                           onVideoUploaded={(url) => updatePage(pageIndex, { video_url: url })}
-                          currentVideoUrl={page.video_url}
-                          onRemoveVideo={() => updatePage(pageIndex, { video_url: undefined })}
+                          currentVideoUrl={page.video_url || ''}
+                          onRemoveVideo={() => updatePage(pageIndex, { video_url: '' })}
                         />
                         <p className="text-xs text-gray-500 mt-2" dir="rtl">
                           {t('module_pages_editor.same_video')}
@@ -305,11 +336,11 @@ export function ModulePagesEditor({ pages, onChange }: ModulePagesEditorProps) {
                             presentation_url: url,
                             presentation_type: type
                           })}
-                          currentPresentationUrl={page.presentation_url}
+                          currentPresentationUrl={page.presentation_url || ''}
                           currentPresentationType={page.presentation_type}
                           onRemovePresentation={() => updatePage(pageIndex, {
-                            presentation_url: undefined,
-                            presentation_type: undefined
+                            presentation_url: '',
+                            presentation_type: ''
                           })}
                         />
                         <p className="text-xs text-gray-500 mt-2" dir="rtl">

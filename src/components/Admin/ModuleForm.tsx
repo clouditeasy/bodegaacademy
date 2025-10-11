@@ -24,6 +24,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
   const [loading, setLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categories, setCategories] = useState<ModuleCategory[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -174,6 +175,8 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         if (error) throw error;
       }
 
+      // Réinitialiser le flag de modifications non sauvegardées
+      setHasUnsavedChanges(false);
       onSave();
     } catch (error) {
       console.error('Error saving module:', error);
@@ -181,6 +184,42 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Gestionnaire pour détecter les modifications
+  const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      const confirmLeave = window.confirm(
+        t('module_form.unsaved_changes_warning') ||
+        'Vous avez des modifications non sauvegardées. Êtes-vous sûr de vouloir quitter sans sauvegarder ?'
+      );
+      if (!confirmLeave) {
+        return;
+      }
+    }
+    onCancel();
+  };
+
+  // Wrapper pour setFormData qui marque les modifications
+  const updateFormData = (updates: Partial<typeof formData> | ((prev: typeof formData) => typeof formData)) => {
+    if (typeof updates === 'function') {
+      setFormData(updates);
+    } else {
+      setFormData(prev => ({ ...prev, ...updates }));
+    }
+    setHasUnsavedChanges(true);
+  };
+
+  // Wrapper pour setPages qui marque les modifications
+  const updatePages = (newPages: ModulePage[]) => {
+    setPages(newPages);
+    setHasUnsavedChanges(true);
+  };
+
+  // Wrapper pour setIsMultiPage qui marque les modifications
+  const updateIsMultiPage = (value: boolean) => {
+    setIsMultiPage(value);
+    setHasUnsavedChanges(true);
   };
 
   const addQuestion = () => {
@@ -191,18 +230,21 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
       options_ar: ['', '', '', ''],
       correct: 0
     }]);
+    setHasUnsavedChanges(true);
   };
 
   const updateQuestion = (index: number, field: keyof QuizQuestion, value: any) => {
     const updatedQuestions = [...questions];
     updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
     setQuestions(updatedQuestions);
+    setHasUnsavedChanges(true);
   };
 
   const updateOption = (questionIndex: number, optionIndex: number, value: string) => {
     const updatedQuestions = [...questions];
     updatedQuestions[questionIndex].options[optionIndex] = value;
     setQuestions(updatedQuestions);
+    setHasUnsavedChanges(true);
   };
 
   const updateOptionAr = (questionIndex: number, optionIndex: number, value: string) => {
@@ -212,27 +254,38 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     }
     updatedQuestions[questionIndex].options_ar![optionIndex] = value;
     setQuestions(updatedQuestions);
+    setHasUnsavedChanges(true);
   };
 
   const removeQuestion = (index: number) => {
     setQuestions(questions.filter((_, i) => i !== index));
+    setHasUnsavedChanges(true);
   };
 
   const handleVideoUploaded = (url: string) => {
     setFormData(prev => ({ ...prev, video_url: url }));
+    setHasUnsavedChanges(true);
   };
 
   const handleVideoUploadedAr = (url: string) => {
     setFormData(prev => ({ ...prev, video_url_ar: url }));
+    setHasUnsavedChanges(true);
   };
 
   const handleRemoveVideo = async () => {
+    console.log('[handleRemoveVideo] Début de la suppression');
+
     // Mettre à jour le state local
-    setFormData(prev => ({ ...prev, video_url: '' }));
+    setFormData(prev => {
+      console.log('[handleRemoveVideo] Mise à jour du state local, ancien video_url:', prev.video_url);
+      return { ...prev, video_url: '' };
+    });
+    setHasUnsavedChanges(true);
 
     // Si on édite un module existant, sauvegarder immédiatement
     if (module && user) {
       try {
+        console.log('[handleRemoveVideo] Mise à jour de la BDD pour module:', module.id);
         const { error } = await supabase
           .from('modules')
           .update({
@@ -242,19 +295,20 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
           .eq('id', module.id);
 
         if (error) throw error;
-        console.log('Vidéo supprimée de la base de données');
-
-        // Notifier le parent que le module a été mis à jour
-        onSave();
+        console.log('[handleRemoveVideo] Vidéo supprimée de la base de données avec succès');
       } catch (error) {
-        console.error('Erreur lors de la mise à jour du module:', error);
+        console.error('[handleRemoveVideo] Erreur lors de la mise à jour du module:', error);
+        alert('Erreur lors de la suppression de la vidéo');
       }
+    } else {
+      console.log('[handleRemoveVideo] Nouveau module (non sauvegardé), mise à jour state uniquement');
     }
   };
 
   const handleRemoveVideoAr = async () => {
     // Mettre à jour le state local
     setFormData(prev => ({ ...prev, video_url_ar: '' }));
+    setHasUnsavedChanges(true);
 
     // Si on édite un module existant, sauvegarder immédiatement
     if (module && user) {
@@ -269,11 +323,9 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
 
         if (error) throw error;
         console.log('Vidéo arabe supprimée de la base de données');
-
-        // Notifier le parent que le module a été mis à jour
-        onSave();
       } catch (error) {
         console.error('Erreur lors de la mise à jour du module:', error);
+        alert('Erreur lors de la suppression de la vidéo arabe');
       }
     }
   };
@@ -284,6 +336,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
       presentation_url: url,
       presentation_type: type
     }));
+    setHasUnsavedChanges(true);
   };
 
   const handlePresentationUploadedAr = (url: string, type: 'pdf' | 'powerpoint') => {
@@ -292,6 +345,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
       presentation_url_ar: url,
       presentation_type_ar: type
     }));
+    setHasUnsavedChanges(true);
   };
 
   const handleRemovePresentation = async () => {
@@ -301,6 +355,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
       presentation_url: '',
       presentation_type: ''
     }));
+    setHasUnsavedChanges(true);
 
     // Si on édite un module existant, sauvegarder immédiatement
     if (module && user) {
@@ -316,11 +371,9 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
 
         if (error) throw error;
         console.log('Présentation supprimée de la base de données');
-
-        // Notifier le parent que le module a été mis à jour
-        onSave();
       } catch (error) {
         console.error('Erreur lors de la mise à jour du module:', error);
+        alert('Erreur lors de la suppression de la présentation');
       }
     }
   };
@@ -332,6 +385,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
       presentation_url_ar: '',
       presentation_type_ar: ''
     }));
+    setHasUnsavedChanges(true);
 
     // Si on édite un module existant, sauvegarder immédiatement
     if (module && user) {
@@ -347,11 +401,9 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
 
         if (error) throw error;
         console.log('Présentation arabe supprimée de la base de données');
-
-        // Notifier le parent que le module a été mis à jour
-        onSave();
       } catch (error) {
         console.error('Erreur lors de la mise à jour du module:', error);
+        alert('Erreur lors de la suppression de la présentation arabe');
       }
     }
   };
@@ -360,7 +412,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <button
-          onClick={onCancel}
+          onClick={handleCancel}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-4 transition-colors font-medium shadow-md hover:shadow-lg"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -414,7 +466,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                     id="title"
                     type="text"
                     value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) => updateFormData({ title: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   />
@@ -427,7 +479,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                   <textarea
                     id="description"
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) => updateFormData({ description: e.target.value })}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
@@ -466,7 +518,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                     id="title_ar"
                     type="text"
                     value={formData.title_ar}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title_ar: e.target.value }))}
+                    onChange={(e) => updateFormData({ title_ar: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     dir="rtl"
                     placeholder="الترجمة العربية للعنوان"
@@ -480,7 +532,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                   <textarea
                     id="description_ar"
                     value={formData.description_ar}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description_ar: e.target.value }))}
+                    onChange={(e) => updateFormData({ description_ar: e.target.value })}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     dir="rtl"
@@ -521,7 +573,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                 <select
                   id="training_path_id"
                   value={formData.training_path_id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, training_path_id: e.target.value }))}
+                  onChange={(e) => updateFormData({ training_path_id: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   disabled={categoriesLoading}
                 >
@@ -554,7 +606,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                   type="number"
                   min="0"
                   value={formData.order_index}
-                  onChange={(e) => setFormData(prev => ({ ...prev, order_index: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => updateFormData({ order_index: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
                 />
@@ -569,7 +621,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                 id="is_active"
                 type="checkbox"
                 checked={formData.is_active}
-                onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                onChange={(e) => updateFormData({ is_active: e.target.checked })}
                 className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
               />
               <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700">
@@ -589,7 +641,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                 id="single-page"
                 type="radio"
                 checked={!isMultiPage}
-                onChange={() => setIsMultiPage(false)}
+                onChange={() => updateIsMultiPage(false)}
                 className="h-4 w-4 text-orange-600 focus:ring-orange-500"
               />
               <label htmlFor="single-page" className="ml-2 text-sm font-medium text-gray-700">
@@ -602,7 +654,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
                 id="multi-page"
                 type="radio"
                 checked={isMultiPage}
-                onChange={() => setIsMultiPage(true)}
+                onChange={() => updateIsMultiPage(true)}
                 className="h-4 w-4 text-orange-600 focus:ring-orange-500"
               />
               <label htmlFor="multi-page" className="ml-2 text-sm font-medium text-gray-700">
@@ -623,7 +675,8 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('module_form.module_pages')}</h2>
             <ModulePagesEditor
               pages={pages}
-              onChange={setPages}
+              onChange={updatePages}
+              moduleId={module?.id}
             />
           </div>
         )}
@@ -641,7 +694,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
               <RichTextEditor
                 key={`editor-${languageTab}`}
                 value={languageTab === 'fr' ? formData.content : formData.content_ar}
-                onChange={(content) => setFormData(prev => languageTab === 'fr' ? ({ ...prev, content }) : ({ ...prev, content_ar: content }))}
+                onChange={(content) => updateFormData(languageTab === 'fr' ? { content } : { content_ar: content })}
                 placeholder={languageTab === 'fr' ? t('module_form.content_placeholder_fr') : t('module_form.content_placeholder_ar')}
                 height={500}
               />
@@ -828,7 +881,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={handleCancel}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             {t('module_form.cancel')}

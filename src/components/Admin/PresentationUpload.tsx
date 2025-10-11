@@ -99,24 +99,42 @@ export function PresentationUpload({
   const handleRemove = async () => {
     if (!currentPresentationUrl) return;
 
+    // Update UI immediately first
+    console.log('[PresentationUpload] Suppression de la présentation:', currentPresentationUrl);
+    onRemovePresentation();
+
+    // Only attempt to delete Azure blob files, not external URLs
+    const isAzureBlob = currentPresentationUrl.includes('blob.core.windows.net');
+
+    if (!isAzureBlob) {
+      // For external URLs, just remove from UI/database (already done above)
+      console.log('URL externe détectée (non Azure), suppression terminée');
+      return;
+    }
+
+    // Delete from Azure in background (non-blocking)
     try {
-      // Always try to delete, but handle 404 gracefully
-      const fileName = azureStorage.extractFileNameFromUrl(currentPresentationUrl);
-      console.log('Tentative de suppression du fichier:', fileName);
+      // Clean URL: remove any SAS token or query parameters first
+      const cleanUrl = currentPresentationUrl.split('?')[0];
+      console.log('URL nettoyée:', cleanUrl);
+
+      const fileName = azureStorage.extractFileNameFromUrl(cleanUrl);
+      console.log('Nom de fichier extrait:', fileName);
+
+      if (!fileName) {
+        console.warn('Impossible d\'extraire le nom de fichier de l\'URL:', currentPresentationUrl);
+        return;
+      }
 
       await azureStorage.deleteFile(fileName);
-      console.log('Fichier supprimé avec succès:', fileName);
-
-      // Always call onRemovePresentation to update the UI
-      onRemovePresentation();
+      console.log('Fichier Azure supprimé avec succès:', fileName);
     } catch (err: any) {
-      // If it's a 404 (file not found), it's normal - just log it and continue
+      // If it's a 404 (file not found), it's normal - just log it
       if (err?.statusCode === 404 || err?.code === 'BlobNotFound') {
-        console.warn('Fichier non trouvé - probablement de l\'ancien Storage Account:', currentPresentationUrl);
-        onRemovePresentation(); // Still update UI
+        console.warn('Fichier non trouvé dans Azure - probablement déjà supprimé:', currentPresentationUrl);
       } else {
-        console.error('Delete error:', err);
-        setError('Erreur lors de la suppression');
+        console.error('Erreur lors de la suppression Azure:', err);
+        setError('Erreur lors de la suppression: ' + (err.message || 'Erreur inconnue'));
       }
     }
   };
