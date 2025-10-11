@@ -9,14 +9,14 @@ interface VideoEmbedProps {
 }
 
 export function VideoEmbed({ url, className = '' }: VideoEmbedProps) {
-  const videoInfo: VideoEmbedInfo = getVideoEmbedInfo(url);
+  const videoInfo: VideoEmbedInfo = getVideoEmbedInfo(url || '');
   const [isLoading, setIsLoading] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
-  const isDirectVideo = url.includes('blob.core.windows.net') || url.includes('.mp4') || url.includes('.avi') || url.includes('.mov') || url.includes('.wmv') || url.includes('.mkv') || url.includes('.webm');
-  
+  const isDirectVideo = url?.includes('blob.core.windows.net') || url?.includes('.mp4') || url?.includes('.avi') || url?.includes('.mov') || url?.includes('.wmv') || url?.includes('.mkv') || url?.includes('.webm');
+
   // Ensure Azure blob URLs have SAS tokens
   const videoUrl = useMemo(() => {
-    if (url.includes('blob.core.windows.net') && azureStorage.isConfigured()) {
+    if (url?.includes('blob.core.windows.net') && azureStorage.isConfigured()) {
       try {
         return azureStorage.ensureSasToken(url);
       } catch (error) {
@@ -41,6 +41,9 @@ export function VideoEmbed({ url, className = '' }: VideoEmbedProps) {
     }
   };
 
+  // Return null if no URL provided
+  if (!url) return null;
+
   // Handle direct video files (Azure Blob Storage, etc.)
   if (isDirectVideo) {
     return (
@@ -61,9 +64,9 @@ export function VideoEmbed({ url, className = '' }: VideoEmbedProps) {
               onClick={handlePlayClick}
               disabled={isLoading}
               className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 ${
-                isLoading 
-                  ? 'bg-gray-600 cursor-not-allowed' 
-                  : 'bg-orange-500 hover:bg-orange-600 hover:scale-105 cursor-pointer'
+                isLoading
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-gray-900 hover:bg-gray-800 hover:scale-105 cursor-pointer'
               }`}
             >
               {isLoading ? (
@@ -123,9 +126,9 @@ export function VideoEmbed({ url, className = '' }: VideoEmbedProps) {
               onClick={handlePlayClick}
               disabled={isLoading}
               className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 ${
-                isLoading 
-                  ? 'bg-gray-600 cursor-not-allowed' 
-                  : 'bg-orange-500 hover:bg-orange-600 hover:scale-105 cursor-pointer'
+                isLoading
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-gray-900 hover:bg-gray-800 hover:scale-105 cursor-pointer'
               }`}
             >
               {isLoading ? (

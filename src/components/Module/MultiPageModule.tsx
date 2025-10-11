@@ -341,7 +341,7 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
         {/* Video */}
         {currentPage.video_url && (
           <div className="mb-6">
-            <VideoEmbed videoUrl={currentPage.video_url} />
+            <VideoEmbed url={currentPage.video_url} />
           </div>
         )}
 
