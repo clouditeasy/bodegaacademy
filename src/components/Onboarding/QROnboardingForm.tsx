@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, AlertCircle, UserPlus } from 'lucide-react';
+import { CheckCircle, AlertCircle, UserPlus, Languages } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { QROnboardingService } from '../../services/qrOnboardingService';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface FormData {
   firstName: string;
@@ -24,12 +25,17 @@ const jobRoleOptions = [
 export function QROnboardingForm() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { t, language, setLanguage } = useTranslation();
 
   const [validating, setValidating] = useState(true);
   const [qrCodeValid, setQrCodeValid] = useState(false);
   const [qrCodeId, setQrCodeId] = useState<string>();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'fr' ? 'ar' : 'fr');
+  };
 
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -168,7 +174,7 @@ export function QROnboardingForm() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="w-12 h-12 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Validation du code QR...</p>
+          <p className="text-gray-600">{t('onboarding.qr_validation')}</p>
         </div>
       </div>
     );
@@ -178,15 +184,27 @@ export function QROnboardingForm() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 transition-colors focus:outline-none active:bg-gray-900"
+              title={language === 'fr' ? 'تحويل إلى العربية' : 'Passer au français'}
+            >
+              <Languages className="h-5 w-5 text-white" />
+              <span className="text-sm font-medium text-white">
+                {language === 'fr' ? 'العربية' : 'FR'}
+              </span>
+            </button>
+          </div>
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-8 w-8 text-red-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
-            Code QR invalide
+            {t('onboarding.qr_invalid')}
           </h1>
           <p className="text-gray-600 text-center mb-6">{error}</p>
           <p className="text-sm text-gray-500 text-center">
-            Veuillez contacter votre administrateur pour obtenir un nouveau code QR.
+            {t('onboarding.qr_invalid_text')}
           </p>
         </div>
       </div>
@@ -196,6 +214,20 @@ export function QROnboardingForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 sm:p-6">
       <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 max-w-2xl w-full">
+        {/* Language Selector */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 transition-colors focus:outline-none active:bg-gray-900"
+            title={language === 'fr' ? 'تحويل إلى العربية' : 'Passer au français'}
+          >
+            <Languages className="h-5 w-5 text-white" />
+            <span className="text-sm font-medium text-white">
+              {language === 'fr' ? 'العربية' : 'FR'}
+            </span>
+          </button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="mx-auto mb-4">
@@ -206,10 +238,10 @@ export function QROnboardingForm() {
             />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Bienvenue chez Bodega Academy
+            {t('onboarding.welcome_title')}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Créez votre compte pour commencer votre parcours de formation
+            {t('onboarding.create_account_subtitle')}
           </p>
         </div>
 
@@ -227,7 +259,7 @@ export function QROnboardingForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prénom *
+                {t('onboarding.first_name')} *
               </label>
               <input
                 type="text"
@@ -239,7 +271,7 @@ export function QROnboardingForm() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom *
+                {t('onboarding.last_name')} *
               </label>
               <input
                 type="text"
@@ -254,7 +286,7 @@ export function QROnboardingForm() {
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email *
+              {t('email')} *
             </label>
             <input
               type="email"
@@ -268,7 +300,7 @@ export function QROnboardingForm() {
           {/* Birth Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date de naissance *
+              {t('onboarding.birth_date')} *
             </label>
             <input
               type="date"
@@ -283,7 +315,7 @@ export function QROnboardingForm() {
           {/* Job Role */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Poste *
+              {t('onboarding.job_role')} *
             </label>
             <select
               value={formData.jobRole}
@@ -291,7 +323,7 @@ export function QROnboardingForm() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-base"
               required
             >
-              <option value="">Sélectionnez un poste</option>
+              <option value="">{t('onboarding.select_job')}</option>
               {jobRoleOptions.map((role) => (
                 <option key={role.id} value={role.id}>
                   {role.label}
@@ -304,7 +336,7 @@ export function QROnboardingForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mot de passe *
+                {t('password')} *
               </label>
               <input
                 type="password"
@@ -317,7 +349,7 @@ export function QROnboardingForm() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Confirmer le mot de passe *
+                {t('onboarding.confirm_password')} *
               </label>
               <input
                 type="password"
@@ -339,18 +371,18 @@ export function QROnboardingForm() {
             {loading ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Création du compte...
+                {t('onboarding.creating_account')}
               </>
             ) : (
               <>
                 <UserPlus className="h-5 w-5" />
-                Créer mon compte et continuer
+                {t('onboarding.create_account_continue')}
               </>
             )}
           </button>
 
           <p className="text-xs text-gray-500 text-center">
-            En créant votre compte, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.
+            {t('onboarding.terms_accept')}
           </p>
         </form>
       </div>

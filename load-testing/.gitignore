@@ -1,0 +1,15 @@
+# Artillery reports
+report.json
+report.html
+*.log
+
+# k6 results
+results.json
+k6-results.json
+
+# Node modules (if using npm packages for processors)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db

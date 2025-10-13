@@ -9,7 +9,7 @@ type TranslationKey = string;
  * Supports nested keys with dot notation (e.g., 'module_form.back_to_list')
  */
 export function useTranslation() {
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
   const t = (key: TranslationKey): string => {
     const keys = key.split('.');
@@ -36,5 +36,5 @@ export function useTranslation() {
     return typeof value === 'string' ? value : key;
   };
 
-  return { t, language };
+  return { t, language, setLanguage };
 }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Languages } from 'lucide-react';
 import { OnboardingAssessment, QuizQuestion } from '../../lib/supabase';
 import { QROnboardingService } from '../../services/qrOnboardingService';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface LocationState {
   userId: string;
@@ -14,6 +15,7 @@ export function AssessmentQuiz() {
   const { code } = useParams<{ code: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t, language, setLanguage } = useTranslation();
   const state = location.state as LocationState;
 
   const [loading, setLoading] = useState(true);
@@ -24,9 +26,13 @@ export function AssessmentQuiz() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'fr' ? 'ar' : 'fr');
+  };
+
   useEffect(() => {
     if (!state?.userId) {
-      setError('Session invalide. Veuillez recommencer le processus d\'inscription.');
+      setError(t('onboarding.invalid_session'));
       setLoading(false);
       return;
     }
@@ -39,7 +45,7 @@ export function AssessmentQuiz() {
       const assessmentData = await QROnboardingService.getAssessmentForRole(state?.jobRole);
 
       if (!assessmentData) {
-        setError('Aucune évaluation disponible pour le moment.');
+        setError(t('onboarding.no_assessment'));
         setLoading(false);
         return;
       }
@@ -49,7 +55,7 @@ export function AssessmentQuiz() {
       setAnswers(new Array(assessmentData.questions.length).fill(-1));
     } catch (err) {
       console.error('Error loading assessment:', err);
-      setError('Erreur lors du chargement de l\'évaluation');
+      setError(t('onboarding.assessment_error'));
     } finally {
       setLoading(false);
     }
@@ -108,7 +114,7 @@ export function AssessmentQuiz() {
       });
     } catch (err: any) {
       console.error('Error submitting assessment:', err);
-      setError(err.message || 'Erreur lors de la soumission de l\'évaluation');
+      setError(err.message || t('onboarding.assessment_submit_error'));
       setSubmitting(false);
     }
   };
@@ -118,7 +124,7 @@ export function AssessmentQuiz() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="w-12 h-12 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de l'évaluation...</p>
+          <p className="text-gray-600">{t('onboarding.assessment_loading')}</p>
         </div>
       </div>
     );
@@ -128,11 +134,23 @@ export function AssessmentQuiz() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 transition-colors focus:outline-none active:bg-gray-900"
+              title={language === 'fr' ? 'تحويل إلى العربية' : 'Passer au français'}
+            >
+              <Languages className="h-5 w-5 text-white" />
+              <span className="text-sm font-medium text-white">
+                {language === 'fr' ? 'العربية' : 'FR'}
+              </span>
+            </button>
+          </div>
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-8 w-8 text-red-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
-            Erreur
+            {t('error')}
           </h1>
           <p className="text-gray-600 text-center mb-6">{error}</p>
         </div>
@@ -144,9 +162,36 @@ export function AssessmentQuiz() {
   const progress = ((currentQuestionIndex + 1) / assessment.questions.length) * 100;
   const isLastQuestion = currentQuestionIndex === assessment.questions.length - 1;
 
+  // Helper functions for translation
+  const getAssessmentTitle = () => {
+    return language === 'ar' && assessment.title_ar ? assessment.title_ar : assessment.title;
+  };
+
+  const getQuestionText = (question: QuizQuestion) => {
+    return language === 'ar' && question.question_ar ? question.question_ar : question.question;
+  };
+
+  const getOptions = (question: QuizQuestion) => {
+    return language === 'ar' && question.options_ar ? question.options_ar : question.options;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 sm:p-6">
       <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 max-w-3xl w-full">
+        {/* Language Selector */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 transition-colors focus:outline-none active:bg-gray-900"
+            title={language === 'fr' ? 'تحويل إلى العربية' : 'Passer au français'}
+          >
+            <Languages className="h-5 w-5 text-white" />
+            <span className="text-sm font-medium text-white">
+              {language === 'fr' ? 'العربية' : 'FR'}
+            </span>
+          </button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="mx-auto mb-4">
@@ -157,10 +202,10 @@ export function AssessmentQuiz() {
             />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Évaluation initiale
+            {t('onboarding.initial_assessment')}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            {assessment.title}
+            {getAssessmentTitle()}
           </p>
         </div>
 
@@ -168,7 +213,9 @@ export function AssessmentQuiz() {
         <div className="mb-6 sm:mb-8">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs sm:text-sm font-medium text-gray-700">
-              Question {currentQuestionIndex + 1} sur {assessment.questions.length}
+              {t('onboarding.question_progress')
+                .replace('{current}', (currentQuestionIndex + 1).toString())
+                .replace('{total}', assessment.questions.length.toString())}
             </span>
             <span className="text-xs sm:text-sm font-medium text-gray-700">
               {Math.round(progress)}%
@@ -185,12 +232,12 @@ export function AssessmentQuiz() {
         {/* Question */}
         <div className="mb-6 sm:mb-8">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">
-            {currentQuestion.question}
+            {getQuestionText(currentQuestion)}
           </h2>
 
           {/* Options */}
           <div className="space-y-2 sm:space-y-3">
-            {currentQuestion.options.map((option, index) => (
+            {getOptions(currentQuestion).map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(index)}
@@ -239,7 +286,7 @@ export function AssessmentQuiz() {
             }`}
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm sm:text-base">Précédent</span>
+            <span className="text-sm sm:text-base">{t('previous')}</span>
           </button>
 
           <button
@@ -254,11 +301,11 @@ export function AssessmentQuiz() {
             {submitting ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-sm sm:text-base">Soumission...</span>
+                <span className="text-sm sm:text-base">{t('onboarding.submitting')}</span>
               </>
             ) : (
               <>
-                <span className="text-sm sm:text-base">{isLastQuestion ? 'Terminer' : 'Suivant'}</span>
+                <span className="text-sm sm:text-base">{isLastQuestion ? t('finish') : t('next')}</span>
                 <ArrowRight className="h-5 w-5" />
               </>
             )}

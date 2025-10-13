@@ -1,0 +1,123 @@
+config:
+  target: "https://bodegaacademy.vercel.app"
+  phases:
+    # Phase 1: Warm-up - 10 utilisateurs pendant 1 minute
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm-up"
+
+    # Phase 2: Ramp-up - Augmentation progressive de 10 à 50 utilisateurs
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp-up"
+
+    # Phase 3: Stress test - 100 utilisateurs simultanés pendant 3 minutes
+    - duration: 180
+      arrivalRate: 100
+      name: "Peak load"
+
+    # Phase 4: Soak test - 50 utilisateurs constants pendant 5 minutes
+    - duration: 300
+      arrivalRate: 50
+      name: "Sustained load"
+
+  # Configuration des timeouts
+  timeout: 30
+
+  # Headers communs
+  defaults:
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+
+# Variables pour les tests
+variables:
+  testEmail:
+    - "test1@bodega.ma"
+    - "test2@bodega.ma"
+    - "test3@bodega.ma"
+    - "test4@bodega.ma"
+    - "test5@bodega.ma"
+  testPassword: "TestPassword123!"
+
+scenarios:
+  # Scénario 1: Page d'accueil et login
+  - name: "Login Flow"
+    weight: 40
+    flow:
+      - get:
+          url: "/"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - think: 2
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          afterResponse: "captureAuthToken"
+      - think: 3
+      - get:
+          url: "/dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+  # Scénario 2: Navigation dans les modules
+  - name: "Browse Modules"
+    weight: 30
+    flow:
+      - get:
+          url: "/dashboard"
+      - think: 2
+      - get:
+          url: "/modules"
+      - think: 5
+      - get:
+          url: "/modules/{{ $randomString() }}"
+      - think: 10
+
+  # Scénario 3: QR Code Onboarding (route publique)
+  - name: "QR Onboarding"
+    weight: 20
+    flow:
+      - get:
+          url: "/onboarding/TESTCODE123"
+      - think: 5
+      - post:
+          url: "/api/onboarding/register"
+          json:
+            firstName: "Test"
+            lastName: "User"
+            email: "testuser{{ $randomNumber(1000, 9999) }}@example.com"
+            birthDate: "1990-01-01"
+            jobRole: "service"
+            password: "TestPass123!"
+      - think: 3
+
+  # Scénario 4: Static assets (images, CSS, JS)
+  - name: "Static Assets"
+    weight: 10
+    flow:
+      - get:
+          url: "/logo-bodega.jpg"
+      - get:
+          url: "/assets/index.js"
+      - get:
+          url: "/assets/index.css"
+
+# Fonctions personnalisées
+processor: "./artillery-processor.js"
+
+# Plugins pour des métriques avancées
+plugins:
+  expect: {}
+  metrics-by-endpoint:
+    stripQueryString: true
+
+# Thresholds pour déterminer le succès/échec
+ensure:
+  maxErrorRate: 5          # Max 5% d'erreurs
+  p95: 2000               # 95% des requêtes en moins de 2s
+  p99: 5000               # 99% des requêtes en moins de 5s

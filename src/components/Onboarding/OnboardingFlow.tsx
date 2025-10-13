@@ -1,177 +1,244 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowRight, CheckCircle, Users, Briefcase, Building, Store, Warehouse } from 'lucide-react';
-import { supabase, UserProfile } from '../../lib/supabase';
+import React, { useState } from 'react';
+import { ArrowRight, CheckCircle, Users, Briefcase, Building, Store, Warehouse, Languages } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
-interface JobRole {
+interface JobRoleOption {
   id: string;
   name: string;
+  name_ar: string;
   description: string;
+  description_ar: string;
   icon: React.ReactNode;
+  category: 'store' | 'warehouse' | 'corporate';
 }
 
-interface Department {
+interface DepartmentOption {
   id: string;
   name: string;
+  name_ar: string;
   description: string;
+  description_ar: string;
 }
 
-const jobRoles: JobRole[] = [
+const jobRoles: JobRoleOption[] = [
   // Store Operations
   {
     id: 'manager',
     name: 'Store Manager',
+    name_ar: 'مدير المحل',
     description: 'Team leadership, operations management, customer experience',
-    icon: <Users className="h-6 w-6" />
+    description_ar: 'قيادة الفريق وإدارة العمليات وتجربة العملاء',
+    icon: <Users className="h-6 w-6" />,
+    category: 'store'
   },
   {
     id: 'supervisor',
     name: 'Supervisor',
+    name_ar: 'مشرف',
     description: 'Team coordination, daily operations, quality assurance',
-    icon: <Users className="h-6 w-6" />
+    description_ar: 'تنسيق الفريق والعمليات اليومية وضمان الجودة',
+    icon: <Users className="h-6 w-6" />,
+    category: 'store'
   },
   {
     id: 'cashier',
     name: 'Cashier',
+    name_ar: 'كاشير',
     description: 'Payment processing, customer service, transactions',
-    icon: <Store className="h-6 w-6" />
+    description_ar: 'معالجة المدفوعات وخدمة العملاء والمعاملات',
+    icon: <Store className="h-6 w-6" />,
+    category: 'store'
   },
   {
     id: 'sales_associate',
     name: 'Sales Associate',
+    name_ar: 'موظف مبيعات',
     description: 'Customer assistance, product knowledge, sales support',
-    icon: <Store className="h-6 w-6" />
+    description_ar: 'مساعدة العملاء ومعرفة المنتجات ودعم المبيعات',
+    icon: <Store className="h-6 w-6" />,
+    category: 'store'
   },
   {
     id: 'customer_service',
     name: 'Customer Service',
+    name_ar: 'خدمة العملاء',
     description: 'Customer support, problem resolution, satisfaction',
-    icon: <Users className="h-6 w-6" />
+    description_ar: 'دعم العملاء وحل المشاكل والرضا',
+    icon: <Users className="h-6 w-6" />,
+    category: 'store'
   },
 
   // Warehouse Operations
   {
     id: 'warehouse_manager',
     name: 'Warehouse Manager',
+    name_ar: 'مدير المخزن',
     description: 'Warehouse operations, inventory management, team leadership',
-    icon: <Warehouse className="h-6 w-6" />
+    description_ar: 'عمليات المخزن وإدارة المخزون وقيادة الفريق',
+    icon: <Warehouse className="h-6 w-6" />,
+    category: 'warehouse'
   },
   {
     id: 'inventory_specialist',
     name: 'Inventory Specialist',
+    name_ar: 'أخصائي مخزون',
     description: 'Stock management, cycle counting, inventory tracking',
-    icon: <Warehouse className="h-6 w-6" />
+    description_ar: 'إدارة المخزون والجرد وتتبع المخزون',
+    icon: <Warehouse className="h-6 w-6" />,
+    category: 'warehouse'
   },
   {
     id: 'picker_packer',
     name: 'Picker/Packer',
+    name_ar: 'عامل تحضير الطلبات',
     description: 'Order fulfillment, packaging, shipping preparation',
-    icon: <Warehouse className="h-6 w-6" />
+    description_ar: 'تلبية الطلبات والتعبئة وتحضير الشحن',
+    icon: <Warehouse className="h-6 w-6" />,
+    category: 'warehouse'
   },
   {
     id: 'receiving_clerk',
     name: 'Receiving Clerk',
+    name_ar: 'موظف الاستلام',
     description: 'Incoming shipments, quality inspection, data entry',
-    icon: <Warehouse className="h-6 w-6" />
+    description_ar: 'الشحنات الواردة وفحص الجودة وإدخال البيانات',
+    icon: <Warehouse className="h-6 w-6" />,
+    category: 'warehouse'
   },
   {
     id: 'shipping_clerk',
     name: 'Shipping Clerk',
+    name_ar: 'موظف الشحن',
     description: 'Outbound logistics, carrier coordination, delivery tracking',
-    icon: <Warehouse className="h-6 w-6" />
+    description_ar: 'اللوجستيات الصادرة وتنسيق النقل وتتبع التسليم',
+    icon: <Warehouse className="h-6 w-6" />,
+    category: 'warehouse'
   },
 
   // Corporate
   {
     id: 'hr',
     name: 'Human Resources',
+    name_ar: 'الموارد البشرية',
     description: 'Talent management, employee relations, training coordination',
-    icon: <Briefcase className="h-6 w-6" />
+    description_ar: 'إدارة المواهب وعلاقات الموظفين وتنسيق التدريب',
+    icon: <Briefcase className="h-6 w-6" />,
+    category: 'corporate'
   },
   {
     id: 'admin',
     name: 'Administration',
+    name_ar: 'الإدارة',
     description: 'Office management, administrative support, documentation',
-    icon: <Briefcase className="h-6 w-6" />
+    description_ar: 'إدارة المكاتب والدعم الإداري والتوثيق',
+    icon: <Briefcase className="h-6 w-6" />,
+    category: 'corporate'
   },
   {
     id: 'finance',
     name: 'Finance',
+    name_ar: 'المالية',
     description: 'Financial analysis, budgeting, reporting, accounting',
-    icon: <Briefcase className="h-6 w-6" />
+    description_ar: 'التحليل المالي والميزانية والتقارير والمحاسبة',
+    icon: <Briefcase className="h-6 w-6" />,
+    category: 'corporate'
   },
   {
     id: 'marketing',
     name: 'Marketing',
+    name_ar: 'التسويق',
     description: 'Brand management, promotions, customer engagement',
-    icon: <Briefcase className="h-6 w-6" />
+    description_ar: 'إدارة العلامة التجارية والترويج وإشراك العملاء',
+    icon: <Briefcase className="h-6 w-6" />,
+    category: 'corporate'
   },
   {
     id: 'it_support',
     name: 'IT Support',
+    name_ar: 'الدعم التقني',
     description: 'Technical support, system maintenance, user assistance',
-    icon: <Building className="h-6 w-6" />
+    description_ar: 'الدعم الفني وصيانة النظام ومساعدة المستخدمين',
+    icon: <Building className="h-6 w-6" />,
+    category: 'corporate'
   }
 ];
 
-const departments: Department[] = [
-  // Store Operations
+const departments: DepartmentOption[] = [
   {
     id: 'store_operations',
     name: 'Store Operations',
-    description: 'Retail store management and customer service'
+    name_ar: 'عمليات المحل',
+    description: 'Retail store management and customer service',
+    description_ar: 'إدارة متاجر التجزئة وخدمة العملاء'
   },
   {
     id: 'warehouse_logistics',
     name: 'Warehouse & Logistics',
-    description: 'Inventory management and distribution operations'
+    name_ar: 'المخزن واللوجستيات',
+    description: 'Inventory management and distribution operations',
+    description_ar: 'إدارة المخزون وعمليات التوزيع'
   },
-
-  // Corporate Functions
   {
     id: 'human_resources',
     name: 'Human Resources',
-    description: 'Employee development and organizational support'
+    name_ar: 'الموارد البشرية',
+    description: 'Employee development and organizational support',
+    description_ar: 'تطوير الموظفين والدعم التنظيمي'
   },
   {
     id: 'finance_accounting',
     name: 'Finance & Accounting',
-    description: 'Financial management and business analysis'
+    name_ar: 'المالية والمحاسبة',
+    description: 'Financial management and business analysis',
+    description_ar: 'الإدارة المالية وتحليل الأعمال'
   },
   {
     id: 'marketing_sales',
     name: 'Marketing & Sales',
-    description: 'Brand development and customer acquisition'
+    name_ar: 'التسويق والمبيعات',
+    description: 'Brand development and customer acquisition',
+    description_ar: 'تطوير العلامة التجارية واكتساب العملاء'
   },
   {
     id: 'information_technology',
     name: 'Information Technology',
-    description: 'Technology infrastructure and digital solutions'
+    name_ar: 'تكنولوجيا المعلومات',
+    description: 'Technology infrastructure and digital solutions',
+    description_ar: 'البنية التحتية التكنولوجية والحلول الرقمية'
   },
   {
     id: 'administration',
     name: 'Administration',
-    description: 'General administration and operational support'
+    name_ar: 'الإدارة',
+    description: 'General administration and operational support',
+    description_ar: 'الإدارة العامة والدعم التشغيلي'
   },
-
-  // Management
   {
     id: 'executive_management',
     name: 'Executive Management',
-    description: 'Senior leadership and strategic direction'
+    name_ar: 'الإدارة التنفيذية',
+    description: 'Senior leadership and strategic direction',
+    description_ar: 'القيادة العليا والتوجه الاستراتيجي'
   }
 ];
 
 export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const { user, updateProfile } = useAuth();
+  const { t, language, setLanguage } = useTranslation();
   const [step, setStep] = useState(1);
   const [selectedJobRole, setSelectedJobRole] = useState<string>('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [loading, setLoading] = useState(false);
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'fr' ? 'ar' : 'fr');
+  };
 
   const handleJobRoleSelect = (jobRoleId: string) => {
     setSelectedJobRole(jobRoleId);
@@ -254,19 +321,47 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
   };
 
+  // Group job roles by category
+  const storeRoles = jobRoles.filter(r => r.category === 'store');
+  const warehouseRoles = jobRoles.filter(r => r.category === 'warehouse');
+  const corporateRoles = jobRoles.filter(r => r.category === 'corporate');
+
+  // Helper to get translated field
+  const getField = (item: JobRoleOption | DepartmentOption, field: 'name' | 'description') => {
+    if (language === 'ar') {
+      const arField = `${field}_ar` as keyof typeof item;
+      return item[arField] || item[field];
+    }
+    return item[field];
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-8">
+        {/* Language Selector */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 transition-colors focus:outline-none active:bg-gray-900"
+            title={language === 'fr' ? 'تحويل إلى العربية' : 'Passer au français'}
+          >
+            <Languages className="h-5 w-5 text-white" />
+            <span className="text-sm font-medium text-white">
+              {language === 'fr' ? 'العربية' : 'FR'}
+            </span>
+          </button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-4 bg-orange-500 rounded-lg flex items-center justify-center">
             <span className="text-white text-2xl font-bold">BA</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to Bodega Academy
+            {t('onboarding.welcome_title')}
           </h1>
           <p className="text-gray-600">
-            Let's set up your personalized learning experience
+            {t('onboarding.welcome_subtitle')}
           </p>
         </div>
 
@@ -301,27 +396,25 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {step === 1 && (
             <div className="text-center">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                Let's start your journey
+                {t('onboarding.journey_start')}
               </h2>
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                At Bodega Academy, we believe in the importance of continuous learning.
-                We'll personalize your learning experience based on your role
-                and professional goals.
+                {t('onboarding.journey_intro')}
               </p>
               <div className="bg-orange-50 p-6 rounded-lg mb-8 max-w-2xl mx-auto">
-                <h3 className="font-semibold text-gray-900 mb-2">What awaits you:</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('onboarding.what_awaits')}</h3>
                 <ul className="text-left text-gray-600 space-y-2">
-                  <li>✓ A personalized welcome module</li>
-                  <li>✓ Training tailored to your role</li>
-                  <li>✓ Real-time progress tracking</li>
-                  <li>✓ Completion certificates</li>
+                  <li>✓ {t('onboarding.personalized_module')}</li>
+                  <li>✓ {t('onboarding.role_training')}</li>
+                  <li>✓ {t('onboarding.progress_tracking')}</li>
+                  <li>✓ {t('onboarding.certificates')}</li>
                 </ul>
               </div>
               <button
                 onClick={nextStep}
                 className="bg-orange-500 text-white px-8 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 mx-auto"
               >
-                Get Started
+                {t('onboarding.get_started')}
                 <ArrowRight className="h-5 w-5" />
               </button>
             </div>
@@ -330,114 +423,132 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {step === 2 && (
             <div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4 text-center">
-                What's your role?
+                {t('onboarding.whats_your_role')}
               </h2>
               <p className="text-gray-600 mb-8 text-center">
-                Select your primary area of activity to receive relevant training
+                {t('onboarding.select_role_subtitle')}
               </p>
 
               {/* Store Operations Section */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Store className="h-5 w-5 text-orange-500" />
-                  Store Operations
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {jobRoles.slice(0, 5).map((role) => (
-                    <button
-                      key={role.id}
-                      onClick={() => handleJobRoleSelect(role.id)}
-                      className={`p-4 rounded-lg border-2 transition-all text-left ${
-                        selectedJobRole === role.id
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`p-1.5 rounded ${
-                          selectedJobRole === role.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {role.icon}
-                        </div>
-                        <h4 className="font-semibold text-gray-900 text-sm">{role.name}</h4>
+              <>
+                {storeRoles.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <Store className="h-5 w-5 text-orange-500" />
+                        {t('onboarding.store_operations')}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {storeRoles.map((role) => (
+                          <button
+                            key={role.id}
+                            onClick={() => handleJobRoleSelect(role.id)}
+                            className={`p-4 rounded-lg border-2 transition-all text-left ${
+                              selectedJobRole === role.id
+                                ? 'border-orange-500 bg-orange-50'
+                                : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className={`p-1.5 rounded ${
+                                selectedJobRole === role.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {role.icon}
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-sm">
+                                {getField(role, 'name')}
+                              </h4>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                              {getField(role, 'description')}
+                            </p>
+                          </button>
+                        ))}
                       </div>
-                      <p className="text-xs text-gray-600">{role.description}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    </div>
+                  )}
 
-              {/* Warehouse Operations Section */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Warehouse className="h-5 w-5 text-orange-500" />
-                  Warehouse Operations
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {jobRoles.slice(5, 10).map((role) => (
-                    <button
-                      key={role.id}
-                      onClick={() => handleJobRoleSelect(role.id)}
-                      className={`p-4 rounded-lg border-2 transition-all text-left ${
-                        selectedJobRole === role.id
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`p-1.5 rounded ${
-                          selectedJobRole === role.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {role.icon}
-                        </div>
-                        <h4 className="font-semibold text-gray-900 text-sm">{role.name}</h4>
+                  {warehouseRoles.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <Warehouse className="h-5 w-5 text-orange-500" />
+                        {t('onboarding.warehouse_operations')}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {warehouseRoles.map((role) => (
+                          <button
+                            key={role.id}
+                            onClick={() => handleJobRoleSelect(role.id)}
+                            className={`p-4 rounded-lg border-2 transition-all text-left ${
+                              selectedJobRole === role.id
+                                ? 'border-orange-500 bg-orange-50'
+                                : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className={`p-1.5 rounded ${
+                                selectedJobRole === role.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {role.icon}
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-sm">
+                                {getField(role, 'name')}
+                              </h4>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                              {getField(role, 'description')}
+                            </p>
+                          </button>
+                        ))}
                       </div>
-                      <p className="text-xs text-gray-600">{role.description}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    </div>
+                  )}
 
-              {/* Corporate Functions Section */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Building className="h-5 w-5 text-orange-500" />
-                  Corporate Functions
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {jobRoles.slice(10).map((role) => (
-                    <button
-                      key={role.id}
-                      onClick={() => handleJobRoleSelect(role.id)}
-                      className={`p-4 rounded-lg border-2 transition-all text-left ${
-                        selectedJobRole === role.id
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`p-1.5 rounded ${
-                          selectedJobRole === role.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {role.icon}
-                        </div>
-                        <h4 className="font-semibold text-gray-900 text-sm">{role.name}</h4>
+                  {corporateRoles.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <Building className="h-5 w-5 text-orange-500" />
+                        {t('onboarding.corporate_functions')}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {corporateRoles.map((role) => (
+                          <button
+                            key={role.id}
+                            onClick={() => handleJobRoleSelect(role.id)}
+                            className={`p-4 rounded-lg border-2 transition-all text-left ${
+                              selectedJobRole === role.id
+                                ? 'border-orange-500 bg-orange-50'
+                                : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className={`p-1.5 rounded ${
+                                selectedJobRole === role.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {role.icon}
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-sm">
+                                {getField(role, 'name')}
+                              </h4>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                              {getField(role, 'description')}
+                            </p>
+                          </button>
+                        ))}
                       </div>
-                      <p className="text-xs text-gray-600">{role.description}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    </div>
+                  )}
+                </>
             </div>
           )}
 
           {step === 3 && (
             <div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4 text-center">
-                Which department do you work in?
+                {t('onboarding.which_department')}
               </h2>
               <p className="text-gray-600 mb-8 text-center">
-                This will help us suggest collaborative training opportunities with your team
+                {t('onboarding.department_subtitle')}
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-4xl mx-auto">
                 {departments.map((dept) => (
@@ -450,8 +561,12 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                         : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
                     }`}
                   >
-                    <h3 className="font-semibold text-gray-900 mb-2">{dept.name}</h3>
-                    <p className="text-sm text-gray-600">{dept.description}</p>
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      {getField(dept, 'name')}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {getField(dept, 'description')}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -470,11 +585,11 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            Previous
+            {t('previous')}
           </button>
 
           <div className="text-sm text-gray-500">
-            Step {step} of 3
+            {t('onboarding.step_of').replace('{step}', step.toString()).replace('{total}', '3')}
           </div>
 
           {step < 3 ? (
@@ -487,7 +602,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   : 'bg-orange-500 text-white hover:bg-orange-600'
               }`}
             >
-              Next
+              {t('next')}
               <ArrowRight className="h-4 w-4" />
             </button>
           ) : (
@@ -505,7 +620,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               ) : (
                 <CheckCircle className="h-4 w-4" />
               )}
-              Complete
+              {t('onboarding.complete')}
             </button>
           )}
         </div>

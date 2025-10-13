@@ -148,7 +148,9 @@ export type OnboardingQRCode = {
 export type OnboardingAssessment = {
   id: string;
   title: string;
+  title_ar?: string;
   description?: string;
+  description_ar?: string;
   questions: QuizQuestion[];
   target_roles?: string[];
   is_active: boolean;
@@ -167,3 +169,4 @@ export type OnboardingResponse = {
   passed: boolean;
   completed_at: string;
 };
+
