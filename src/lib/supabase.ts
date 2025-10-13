@@ -17,6 +17,10 @@ export type UserProfile = {
   job_role?: string;
   department?: string;
   has_completed_onboarding: boolean;
+  initial_assessment_score?: number;
+  initial_assessment_completed_at?: string;
+  onboarded_via_qr?: boolean;
+  birth_date?: string;
   created_at: string;
   updated_at: string;
 };
@@ -127,4 +131,39 @@ export type TrainingPathProgress = {
   completed_at?: string;
   created_at: string;
   updated_at: string;
+};
+
+export type OnboardingQRCode = {
+  id: string;
+  code: string;
+  created_by?: string;
+  created_at: string;
+  expires_at?: string;
+  is_active: boolean;
+  max_uses?: number;
+  current_uses: number;
+  description?: string;
+};
+
+export type OnboardingAssessment = {
+  id: string;
+  title: string;
+  description?: string;
+  questions: QuizQuestion[];
+  target_roles?: string[];
+  is_active: boolean;
+  passing_score: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OnboardingResponse = {
+  id: string;
+  user_id: string;
+  assessment_id: string;
+  qr_code_id?: string;
+  answers: number[];
+  score: number;
+  passed: boolean;
+  completed_at: string;
 };

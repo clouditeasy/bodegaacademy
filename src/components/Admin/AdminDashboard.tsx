@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, Users, BookOpen, TrendingUp, BarChart3, Settings, UserCheck, Database, Grid3X3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Users, BookOpen, TrendingUp, BarChart3, Settings, UserCheck, Database, Grid3X3, QrCode, FileQuestion } from 'lucide-react';
 import { supabase, Module, TrainingPath } from '../../lib/supabase';
 import { ModuleForm } from './ModuleForm';
 import { ProgressTracking } from './ProgressTracking';
@@ -8,6 +8,8 @@ import { Analytics } from './Analytics';
 import { SystemSettings } from './SystemSettings';
 import { DatabaseMigration } from './DatabaseMigration';
 import { CategoryManagement } from './CategoryManagement';
+import { QRCodeManagement } from './QRCodeManagement';
+import { OnboardingQuizEditor } from './OnboardingQuizEditor';
 import { CategoryService } from '../../services/categoryService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getTranslatedField } from '../../utils/translation';
@@ -17,7 +19,7 @@ export function AdminDashboard() {
   const [modules, setModules] = useState<Module[]>([]);
   const [categories, setCategories] = useState<TrainingPath[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'modules' | 'progress' | 'form' | 'users' | 'analytics' | 'settings' | 'training-paths'>('modules');
+  const [currentView, setCurrentView] = useState<'modules' | 'progress' | 'form' | 'users' | 'analytics' | 'settings' | 'training-paths' | 'qr-codes' | 'quiz-editor'>('modules');
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [stats, setStats] = useState({
     totalModules: 0,
@@ -216,6 +218,18 @@ export function AdminDashboard() {
     );
   }
 
+  if (currentView === 'qr-codes') {
+    return (
+      <QRCodeManagement onBack={() => setCurrentView('modules')} />
+    );
+  }
+
+  if (currentView === 'quiz-editor') {
+    return (
+      <OnboardingQuizEditor onBack={() => setCurrentView('modules')} />
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
       {/* Header */}
@@ -226,8 +240,7 @@ export function AdminDashboard() {
             className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('progress_tracking')}</span>
-            <span className="sm:hidden">{t('progress_tracking').split(' ')[0]}</span>
+            Suivi
           </button>
           <button
             onClick={() => setCurrentView('users')}
@@ -255,7 +268,23 @@ export function AdminDashboard() {
             className="bg-indigo-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
           >
             <Grid3X3 className="h-4 w-4" />
-            {t('training_paths')}
+            Parcours
+          </button>
+          <button
+            onClick={() => setCurrentView('qr-codes')}
+            className="bg-teal-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
+          >
+            <QrCode className="h-4 w-4" />
+            <span className="hidden sm:inline">Codes QR</span>
+            <span className="sm:hidden">QR</span>
+          </button>
+          <button
+            onClick={() => setCurrentView('quiz-editor')}
+            className="bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
+          >
+            <FileQuestion className="h-4 w-4" />
+            <span className="hidden sm:inline">Quiz Onboarding</span>
+            <span className="sm:hidden">Quiz</span>
           </button>
           <button
             onClick={() => {
