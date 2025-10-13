@@ -140,26 +140,28 @@ export function QRCodeManagement({ onBack }: QRCodeManagementProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </button>
+      <div className="mb-8">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 mb-3 transition-colors font-medium shadow-md hover:shadow-lg"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Retour au dashboard
+        </button>
+
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Gestion des codes QR</h1>
             <p className="text-gray-600 mt-1">Créez et gérez les codes QR pour l'onboarding des employés</p>
           </div>
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+          >
+            <Plus className="h-5 w-5" />
+            Nouveau code QR
+          </button>
         </div>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
-        >
-          <Plus className="h-5 w-5" />
-          Nouveau code QR
-        </button>
       </div>
 
       {/* Error message */}
@@ -187,7 +189,7 @@ export function QRCodeManagement({ onBack }: QRCodeManagementProps) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Ex: Session de formation Mars 2025"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               />
             </div>
 
@@ -200,7 +202,7 @@ export function QRCodeManagement({ onBack }: QRCodeManagementProps) {
                 value={expiresInHours}
                 onChange={(e) => setExpiresInHours(Number(e.target.value))}
                 min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               />
               <p className="text-sm text-gray-500 mt-1">
                 Le code expirera dans {expiresInHours} heures ({Math.round(expiresInHours / 24)} jours)
@@ -217,7 +219,7 @@ export function QRCodeManagement({ onBack }: QRCodeManagementProps) {
                 onChange={(e) => setMaxUses(e.target.value ? Number(e.target.value) : undefined)}
                 min="1"
                 placeholder="Illimité"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               />
               <p className="text-sm text-gray-500 mt-1">
                 Laissez vide pour un nombre illimité d'utilisations
@@ -228,13 +230,13 @@ export function QRCodeManagement({ onBack }: QRCodeManagementProps) {
               <button
                 onClick={handleCreateQRCode}
                 disabled={creating}
-                className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? 'Création...' : 'Créer le code QR'}
               </button>
               <button
                 onClick={() => setShowCreateForm(false)}
-                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Annuler
               </button>
@@ -365,7 +367,7 @@ export function QRCodeManagement({ onBack }: QRCodeManagementProps) {
           </p>
           <button
             onClick={() => setShowCreateForm(true)}
-            className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
+            className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors inline-flex items-center gap-2"
           >
             <Plus className="h-5 w-5" />
             Créer un code QR
