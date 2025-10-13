@@ -264,13 +264,6 @@ export function AssessmentQuiz() {
             )}
           </button>
         </div>
-
-        {/* Info */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-600 text-center">
-            Score de passage : {assessment.passing_score}%
-          </p>
-        </div>
       </div>
     </div>
   );
