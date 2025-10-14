@@ -29,8 +29,6 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   const [currentView, setCurrentView] = useState<'content' | 'quiz'>('content');
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showUnlockNotification, setShowUnlockNotification] = useState(false);
-  const [nextModuleTitle, setNextModuleTitle] = useState<string>('');
   const [trainingPathName, setTrainingPathName] = useState<string>('');
 
   // Déterminer quelle vidéo/présentation afficher selon la langue avec fallback
@@ -149,42 +147,22 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
 
       if (error) throw error;
       setProgress(data);
-      setCurrentView('content');
 
-      // Si le quiz est réussi, vérifier s'il y a un module suivant à déverrouiller
-      if (score >= 80 && module.training_path_id) {
-        await checkNextModule();
+      // Si le quiz est réussi, rediriger vers le parcours de formation
+      if (score >= 80) {
+        // Petit délai pour que l'utilisateur puisse voir le résultat
+        setTimeout(() => {
+          onBack();
+        }, 2000);
+      } else {
+        // Si le quiz n'est pas réussi, revenir à la vue du contenu pour permettre de réessayer
+        setCurrentView('content');
       }
     } catch (error) {
       console.error('Error updating progress:', error);
     }
   };
 
-  const checkNextModule = async () => {
-    if (!user || !module.training_path_id) return;
-
-    try {
-      // Récupérer le module suivant dans le parcours
-      const { data: nextModule, error } = await supabase
-        .from('modules')
-        .select('title')
-        .eq('training_path_id', module.training_path_id)
-        .eq('order_index', module.order_index + 1)
-        .single();
-
-      if (!error && nextModule) {
-        setNextModuleTitle(nextModule.title);
-        setShowUnlockNotification(true);
-
-        // Masquer la notification après 5 secondes
-        setTimeout(() => {
-          setShowUnlockNotification(false);
-        }, 5000);
-      }
-    } catch (error) {
-      console.error('Error checking next module:', error);
-    }
-  };
 
   const renderContent = (content: string) => {
     // Log content pour debugging
@@ -243,33 +221,6 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-      {/* Unlock Notification */}
-      {showUnlockNotification && nextModuleTitle && (
-        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 bg-green-50 border-2 border-green-500 rounded-lg shadow-lg p-4 z-50 animate-slide-in">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-green-900 mb-1">
-                🎉 {t('unlock_next_page')}
-              </h3>
-              <p className="text-sm text-green-800">
-                <strong>{nextModuleTitle}</strong>
-              </p>
-            </div>
-            <button
-              onClick={() => setShowUnlockNotification(false)}
-              className="flex-shrink-0 text-green-600 hover:text-green-800"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <button

@@ -190,11 +190,17 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
       setCompletedPages(newCompleted);
 
       await saveProgress(newCompleted, newScores);
-      setCurrentView('content');
 
       // Vérifier si toutes les pages sont complétées
       if (newCompleted.size === pages.length) {
         await markModuleAsCompleted(newScores);
+        // Rediriger vers le parcours de formation après avoir terminé toutes les pages
+        setTimeout(() => {
+          onBack();
+        }, 2000);
+      } else {
+        // Si ce n'est pas la dernière page, revenir à la vue du contenu
+        setCurrentView('content');
       }
     } else {
       alert(`${t('score')}: ${score}%. ${t('pass_score')}`);
