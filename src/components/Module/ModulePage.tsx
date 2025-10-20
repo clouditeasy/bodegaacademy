@@ -208,6 +208,23 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
   }
 
   if (currentView === 'quiz') {
+    // Vérifier que les questions existent et ne sont pas vides
+    if (!module.quiz_questions || module.quiz_questions.length === 0) {
+      return (
+        <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-800">{t('no_quiz_available')}</p>
+            <button
+              onClick={() => setCurrentView('content')}
+              className="mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              {t('back_to_module')}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <Quiz
         questions={module.quiz_questions}
@@ -310,23 +327,25 @@ export function ModulePage({ module, onBack }: ModulePageProps) {
       </div>
 
       {/* Quiz Info */}
-      <div className="mt-6 sm:mt-8 bg-orange-50 rounded-lg p-4 sm:p-6">
-        <div className="flex items-start gap-4">
-          <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500 mt-1 flex-shrink-0" />
-          <div>
-            <h3 className="font-semibold text-orange-900 mb-2 text-sm sm:text-base">{t('quiz_validation')}</h3>
-            <p className="text-orange-800 mb-3 text-sm">
-              {t('pass_score')}
-            </p>
-            <button
-              onClick={() => setCurrentView('quiz')}
-              className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm w-full sm:w-auto"
-            >
-              {progress?.status === 'completed' ? t('retake_quiz') : t('start_quiz')}
-            </button>
+      {module.quiz_questions && module.quiz_questions.length > 0 && (
+        <div className="mt-6 sm:mt-8 bg-orange-50 rounded-lg p-4 sm:p-6">
+          <div className="flex items-start gap-4">
+            <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500 mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-orange-900 mb-2 text-sm sm:text-base">{t('quiz_validation')}</h3>
+              <p className="text-orange-800 mb-3 text-sm">
+                {t('pass_score')}
+              </p>
+              <button
+                onClick={() => setCurrentView('quiz')}
+                className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm w-full sm:w-auto"
+              >
+                {progress?.status === 'completed' ? t('retake_quiz') : t('start_quiz')}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

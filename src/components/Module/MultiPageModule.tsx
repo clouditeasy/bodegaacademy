@@ -311,6 +311,23 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
   }
 
   if (currentView === 'quiz' && currentPage.has_quiz) {
+    // Vérifier que les questions existent et ne sont pas vides
+    if (!currentPage.quiz_questions || currentPage.quiz_questions.length === 0) {
+      return (
+        <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-800">{t('no_quiz_available')}</p>
+            <button
+              onClick={() => setCurrentView('content')}
+              className="mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              {t('back_to_module')}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <Quiz
         questions={currentPage.quiz_questions}

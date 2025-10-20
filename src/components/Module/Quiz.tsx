@@ -16,9 +16,26 @@ export function Quiz({ questions, onComplete, onBack, previousScore, attempts }:
   const { t } = useTranslation();
   const { language } = useLanguage();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
+  const [answers, setAnswers] = useState<number[]>(new Array(questions?.length || 0).fill(-1));
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
+
+  // Protection supplémentaire : vérifier que les questions existent
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-800">{t('no_quiz_available') || 'Aucun quiz disponible'}</p>
+          <button
+            onClick={onBack}
+            className="mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            {t('quiz.back_to_module') || 'Retour'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Helper function to get question/options based on language with fallback
   const getQuestionText = (q: QuizQuestion) => {
