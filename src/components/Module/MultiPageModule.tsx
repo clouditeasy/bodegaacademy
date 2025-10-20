@@ -421,7 +421,7 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
         </div>
 
         {/* Actions */}
-        {currentPage.has_quiz && (
+        {currentPage.has_quiz && currentPage.quiz_questions && currentPage.quiz_questions.length > 0 && (
           <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="flex items-start gap-3 mb-3">
               <div className="flex-1">
