@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 1 - Avant l'Arrivée | Formation Bodega</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .module-number {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header .subtitle {
+            font-size: 20px;
+            opacity: 0.95;
+        }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+        }
+        
+        .stat-item {
+            padding: 25px;
+            text-align: center;
+            border-right: 1px solid #dee2e6;
+        }
+        
+        .stat-item:last-child {
+            border-right: none;
+        }
+        
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .content-section {
+            padding: 50px 40px;
+        }
+        
+        .intro-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 40px;
+            border-left: 6px solid #667eea;
+        }
+        
+        .intro-title {
+            font-size: 24px;
+            color: #5f3dc4;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .intro-text {
+            font-size: 16px;
+            color: #495057;
+            line-height: 1.8;
+        }
+        
+        .checkpoint-section {
+            margin-bottom: 50px;
+        }
+        
+        .checkpoint-title {
+            font-size: 28px;
+            color: #2d3436;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .checkpoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .checkpoint {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 6px solid #667eea;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .checkpoint:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .checkpoint.critical {
+            border-left-color: #ee5a24;
+            background: #fff5f5;
+        }
+        
+        .checkpoint.important {
+            border-left-color: #f39c12;
+            background: #fffef5;
+        }
+        
+        .checkpoint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+        
+        .checkpoint-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+        
+        .checkpoint-points {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .checkpoint.critical .checkpoint-points {
+            background: #ee5a24;
+        }
+        
+        .checkpoint.important .checkpoint-points {
+            background: #f39c12;
+        }
+        
+        .checkpoint-details ul {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .checkpoint-details li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: #636e72;
+            line-height: 1.6;
+        }
+        
+        .checkpoint-details li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .critical .checkpoint-details li:before {
+            content: "⚠";
+            color: #ee5a24;
+        }
+        
+        .script-box {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe4e1 100%);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 3px solid #f39c12;
+        }
+        
+        .script-title {
+            font-size: 20px;
+            color: #d35400;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .script-content {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            color: #2d3436;
+            line-height: 1.8;
+            font-style: italic;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .training-section {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+            border-radius: 16px;
+            padding: 35px;
+            margin-top: 30px;
+            border: 2px dashed #00b894;
+        }
+        
+        .training-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .training-icon {
+            font-size: 36px;
+        }
+        
+        .training-title {
+            font-size: 24px;
+            color: #00695c;
+            font-weight: bold;
+        }
+        
+        .training-content {
+            font-size: 16px;
+            color: #495057;
+            line-height: 1.8;
+        }
+        
+        .exercise-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #00b894;
+        }
+        
+        .exercise-title {
+            font-weight: bold;
+            color: #00695c;
+            margin-bottom: 10px;
+            font-size: 17px;
+        }
+        
+        .exercise-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .exercise-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+            color: #495057;
+        }
+        
+        .exercise-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .kpi-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .kpi-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            opacity: 0.95;
+        }
+        
+        .kpi-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .kpi-description {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .key-points {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+        
+        .key-points-title {
+            font-size: 24px;
+            color: #2d3436;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .points-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .point-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: start;
+            gap: 15px;
+        }
+        
+        .point-emoji {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+        
+        .point-text {
+            font-size: 15px;
+            color: #2d3436;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .checkpoint-grid,
+            .points-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-item {
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="module-number">📞 Module 1</div>
+            <h1>Avant l'Arrivée du Client</h1>
+            <div class="subtitle">Réservation & Pré-accueil</div>
+        </div>
+        
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-value">Préparation</div>
+                <div class="stat-label">Phase</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value">30 points</div>
+                <div class="stat-label">Points totaux</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">> 90%</div>
+                <div class="stat-label">Taux de réussite visé</div>
+            </div>
+        </div>
+        
+        <!-- Content Section -->
+        <div class="content-section">
+            
+            <!-- Introduction -->
+            <div class="intro-box">
+                <div class="intro-title">
+                    <span>💡</span>
+                    Pourquoi cette étape est cruciale ?
+                </div>
+                <div class="intro-text">
+                    Le premier contact téléphonique et l'état des lieux créent la <strong>première impression</strong>. 
+                    Avant même que le client franchisse la porte, il se fait déjà une idée de La Bodega. 
+                    Cette étape détermine si le client viendra avec enthousiasme ou avec appréhension.
+                </div>
+            </div>
+            
+            <!-- Checkpoint 1 : Réservation -->
+            <div class="checkpoint-section">
+                <h2 class="checkpoint-title">
+                    <span>📞</span>
+                    1. Réservation Téléphonique
+                </h2>
+                
+                <div class="checkpoint-grid">
+                    <div class="checkpoint critical">
+                        <div class="checkpoint-header">
+                            <div class="checkpoint-name">Standards Téléphoniques</div>
+                            <div class="checkpoint-points">10 pts</div>
+                        </div>
+                        <div class="checkpoint-details">
+                            <ul>
+                                <li>Répondre en <strong>moins de 3 sonneries</strong></li>
+                                <li>Dire : "La Bodega, bonsoir, [Prénom] à votre service"</li>
+                                <li>Poser 3 questions : jour / heure / nombre de personnes</li>
+                                <li>Reformuler la réservation complète</li>
+                                <li>Demander le numéro de téléphone du client</li>
+                                <li>Proposer une ambiance : "en salle ?" "près de la scène ?"</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="checkpoint critical">
+                        <div class="checkpoint-header">
+                            <div class="checkpoint-name">Ton & Attitude</div>
+                            <div class="checkpoint-points">Critique</div>
+                        </div>
+                        <div class="checkpoint-details">
+                            <ul>
+                                <li>Voix chaleureuse et souriante (oui, ça s'entend !)</li>
+                                <li>Énergie positive qui reflète l'ambiance Bodega</li>
+                                <li>Écoute active : répéter pour confirmer</li>
+                                <li>Terminer par : "À très bientôt à La Bodega !"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Script Standard -->
+                <div class="script-box">
+                    <div class="script-title">
+                        <span>📝</span>
+                        Script Standard - À Mémoriser
+                    </div>
+                    <div class="script-content">
+                        <strong>Vous :</strong> "La Bodega, bonsoir ! [Prénom] à votre service."<br><br>
+                        <strong>Client :</strong> "Bonjour, je voudrais réserver..."<br><br>
+                        <strong>Vous :</strong> "Avec plaisir ! C'est pour quel jour et à quelle heure ?"<br><br>
+                        <strong>Client :</strong> "Vendredi à 20h."<br><br>
+                        <strong>Vous :</strong> "Parfait ! Et vous serez combien de personnes ?"<br><br>
+                        <strong>Client :</strong> "4 personnes."<br><br>
+                        <strong>Vous :</strong> "Super ! Donc je note : vendredi à 20h pour 4 personnes. Vous préférez une table en salle ou près de la scène pour profiter de l'ambiance ?"<br><br>
+                        <strong>Vous :</strong> "Et je peux avoir votre numéro de téléphone s'il vous plaît ?"<br><br>
+                        <strong>Vous :</strong> "C'est parfait Monsieur/Madame [Nom], on vous attend vendredi à 20h. À très bientôt à La Bodega !"
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Checkpoint 2 : Préparation Environnement -->
+            <div class="checkpoint-section">
+                <h2 class="checkpoint-title">
+                    <span>🏠</span>
+                    2. Préparation de l'Environnement
+                </h2>
+                
+                <div class="checkpoint-grid">
+                    <div class="checkpoint important">
+                        <div class="checkpoint-header">
+                            <div class="checkpoint-name">Extérieur</div>
+                            <div class="checkpoint-points">8 pts</div>
+                        </div>
+                        <div class="checkpoint-details">
+                            <ul>
+                                <li>Enseigne allumée et visible</li>
+                                <li>Parking propre et accueillant</li>
+                                <li>Entrée dégagée et propre</li>
+                                <li>Menu affiché à l'extérieur (propre, à jour)</li>
+                                <li>Plantes en bonne santé</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="checkpoint important">
+                        <div class="checkpoint-header">
+                            <div class="checkpoint-name">Intérieur</div>
+                            <div class="checkpoint-points">12 pts</div>
+                        </div>
+                        <div class="checkpoint-details">
+                            <ul>
+                                <li>Toilettes propres et approvisionnées (savon, papier)</li>
+                                <li>Température agréable (ni trop chaud, ni trop froid)</li>
+                                <li>Éclairage fonctionnel, ambiance adaptée</li>
+                                <li>Musique ajustée : volume et style Bodega</li>
+                                <li>Tables propres avec tous les accessoires</li>
+                                <li>Sol propre, sans débris</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Key Points -->
+            <div class="key-points">
+                <div class="key-points-title">🔑 Points Clés à Retenir</div>
+                <div class="points-grid">
+                    <div class="point-card">
+                        <div class="point-emoji">⚡</div>
+                        <div class="point-text">
+                            <strong>Réactivité :</strong> Moins de 3 sonneries, c'est non négociable. Le client ne doit jamais attendre.
+                        </div>
+                    </div>
+                    <div class="point-card">
+                        <div class="point-emoji">😊</div>
+                        <div class="point-text">
+                            <strong>Sourire vocal :</strong> On entend votre sourire au téléphone. Souriez en décrochant !
+                        </div>
+                    </div>
+                    <div class="point-card">
+                        <div class="point-emoji">🎯</div>
+                        <div class="point-text">
+                            <strong>Précision :</strong> Toujours reformuler pour éviter les erreurs de réservation.
+                        </div>
+                    </div>
+                    <div class="point-card">
+                        <div class="point-emoji">🏠</div>
+                        <div class="point-text">
+                            <strong>Routine quotidienne :</strong> Inspection complète avant chaque service (checklist mentale).
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Training Section -->
+            <div class="training-section">
+                <div class="training-header">
+                    <span class="training-icon">🎓</span>
+                    <h3 class="training-title">Coaching Flash - Jeu de Rôle Téléphone</h3>
+                </div>
+                <div class="training-content">
+                    <p><strong>Durée :</strong> 10 minutes</p>
+                    <p><strong>Objectif :</strong> Maîtriser le script téléphonique et développer les réflexes.</p>
+                    
+                    <div class="exercise-box">
+                        <div class="exercise-title">📋 Exercice Pratique</div>
+                        <ul class="exercise-list">
+                            <li><strong>Étape 1 :</strong> Former des binômes (un client / un serveur)</li>
+                            <li><strong>Étape 2 :</strong> Chaque binôme joue 2 scénarios (réservation simple + réservation compliquée)</li>
+                            <li><strong>Étape 3 :</strong> Observer : ton de voix, rapidité, précision, reformulation</li>
+                            <li><strong>Étape 4 :</strong> Feedback croisé : qu'est-ce qui était bien ? Qu'est-ce qui peut s'améliorer ?</li>
+                            <li><strong>Étape 5 :</strong> Inverser les rôles et recommencer</li>
+                        </ul>
+                    </div>
+                    
+                    <p style="margin-top: 20px;">
+                        <strong>💡 Conseil Manager :</strong> Chronométrez le temps de réponse et notez la fluidité du script. 
+                        L'objectif est que chacun puisse prendre un appel les yeux fermés.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- KPI Box -->
+            <div class="kpi-box">
+                <div class="kpi-title">📊 KPI - Indicateur de Performance</div>
+                <div class="kpi-value">> 90%</div>
+                <div class="kpi-description">
+                    Taux de réservations bien notées par les clients mystères<br>
+                    (Script respecté + Réponse < 3 sonneries + Reformulation)
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+</body>
+</html>
