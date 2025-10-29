@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
 import { supabase, Module, QuizQuestion, ModuleCategory, ModulePage } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
@@ -262,17 +262,17 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     setHasUnsavedChanges(true);
   };
 
-  const handleVideoUploaded = (url: string) => {
+  const handleVideoUploaded = useCallback((url: string) => {
     setFormData(prev => ({ ...prev, video_url: url }));
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
-  const handleVideoUploadedAr = (url: string) => {
+  const handleVideoUploadedAr = useCallback((url: string) => {
     setFormData(prev => ({ ...prev, video_url_ar: url }));
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
-  const handleRemoveVideo = async () => {
+  const handleRemoveVideo = useCallback(async () => {
     console.log('[handleRemoveVideo] Début de la suppression');
 
     // Mettre à jour le state local
@@ -303,9 +303,9 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
     } else {
       console.log('[handleRemoveVideo] Nouveau module (non sauvegardé), mise à jour state uniquement');
     }
-  };
+  }, [module, user]);
 
-  const handleRemoveVideoAr = async () => {
+  const handleRemoveVideoAr = useCallback(async () => {
     // Mettre à jour le state local
     setFormData(prev => ({ ...prev, video_url_ar: '' }));
     setHasUnsavedChanges(true);
@@ -328,27 +328,27 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         alert('Erreur lors de la suppression de la vidéo arabe');
       }
     }
-  };
+  }, [module, user]);
 
-  const handlePresentationUploaded = (url: string, type: 'pdf' | 'powerpoint') => {
+  const handlePresentationUploaded = useCallback((url: string, type: 'pdf' | 'powerpoint') => {
     setFormData(prev => ({
       ...prev,
       presentation_url: url,
       presentation_type: type
     }));
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
-  const handlePresentationUploadedAr = (url: string, type: 'pdf' | 'powerpoint') => {
+  const handlePresentationUploadedAr = useCallback((url: string, type: 'pdf' | 'powerpoint') => {
     setFormData(prev => ({
       ...prev,
       presentation_url_ar: url,
       presentation_type_ar: type
     }));
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
-  const handleRemovePresentation = async () => {
+  const handleRemovePresentation = useCallback(async () => {
     // Mettre à jour le state local
     setFormData(prev => ({
       ...prev,
@@ -376,9 +376,9 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         alert('Erreur lors de la suppression de la présentation');
       }
     }
-  };
+  }, [module, user]);
 
-  const handleRemovePresentationAr = async () => {
+  const handleRemovePresentationAr = useCallback(async () => {
     // Mettre à jour le state local
     setFormData(prev => ({
       ...prev,
@@ -406,7 +406,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
         alert('Erreur lors de la suppression de la présentation arabe');
       }
     }
-  };
+  }, [module, user]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

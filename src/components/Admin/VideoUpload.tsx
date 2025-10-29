@@ -18,8 +18,6 @@ export function VideoUpload({ onVideoUploaded, currentVideoUrl, onRemoveVideo }:
 
   const isAzureConfigured = azureStorage.isConfigured();
 
-  console.log('[VideoUpload] Render - currentVideoUrl:', currentVideoUrl);
-
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
