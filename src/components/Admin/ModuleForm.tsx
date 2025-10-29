@@ -230,6 +230,7 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
       options_ar: ['', '', '', ''],
       correct: 0
     }]);
+    setHasQuiz(true); // Activer le quiz quand on ajoute une question
     setHasUnsavedChanges(true);
   };
 
@@ -258,7 +259,12 @@ export function ModuleForm({ module, onSave, onCancel }: ModuleFormProps) {
   };
 
   const removeQuestion = (index: number) => {
-    setQuestions(questions.filter((_, i) => i !== index));
+    const updatedQuestions = questions.filter((_, i) => i !== index);
+    setQuestions(updatedQuestions);
+    // Désactiver le quiz s'il n'y a plus de questions
+    if (updatedQuestions.length === 0) {
+      setHasQuiz(false);
+    }
     setHasUnsavedChanges(true);
   };
 

@@ -10,27 +10,11 @@ import { AssessmentResults } from './components/Onboarding/AssessmentResults';
 
 function AppContent() {
   const location = useLocation();
-  console.log('[App] Component mounting...');
 
   // Check if we're on a public onboarding route
   const isOnboardingRoute = location.pathname.startsWith('/onboarding/');
 
-  let authState;
-  try {
-    authState = useAuth();
-    console.log('[App] useAuth result:', {
-      hasUser: !!authState.user,
-      hasProfile: !!authState.userProfile,
-      loading: authState.loading
-    });
-  } catch (error) {
-    console.error('[App] Error in useAuth:', error);
-    throw error;
-  }
-
-  const { user, userProfile, loading } = authState;
-
-  console.log('[App] Wrapping entire app in LanguageProvider');
+  const { user, userProfile, loading } = useAuth();
 
   // Public onboarding routes don't require authentication
   if (isOnboardingRoute) {
@@ -44,29 +28,20 @@ function AppContent() {
   }
 
   return loading ? (
-    <>
-      {console.log('[App] Loading state...')}
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <img
-            src="/logo-bodega.jpg"
-            alt="Bodega Academy Logo"
-            className="w-20 h-20 mx-auto mb-4 rounded-lg animate-pulse"
-          />
-          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        </div>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-center">
+        <img
+          src="/logo-bodega.jpg"
+          alt="Bodega Academy Logo"
+          className="w-20 h-20 mx-auto mb-4 rounded-lg animate-pulse"
+        />
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
       </div>
-    </>
+    </div>
   ) : !user || !userProfile ? (
-    <>
-      {console.log('[App] Rendering AuthPage')}
-      <AuthPage />
-    </>
+    <AuthPage />
   ) : (
-    <>
-      {console.log('[App] Rendering MainLayout')}
-      <MainLayout />
-    </>
+    <MainLayout />
   );
 }
 
