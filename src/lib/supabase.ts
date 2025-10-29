@@ -28,13 +28,16 @@ export type UserProfile = {
 export type TrainingPath = {
   id: string;
   name: string;
+  name_ar?: string; // Nom en arabe
   description: string;
+  description_ar?: string; // Description en arabe
   icon: string;
   color: string;
   order_index: number;
   is_active: boolean;
   target_roles?: string[];
   has_end_quiz: boolean;
+  image_url?: string; // URL de l'image du parcours stockée dans Azure
   created_at: string;
   updated_at: string;
 };

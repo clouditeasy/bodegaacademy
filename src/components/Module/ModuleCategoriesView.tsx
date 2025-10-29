@@ -98,9 +98,21 @@ export function ModuleCategoriesView({ modules, onCategorySelect, onModuleSelect
           <div
             key={category.id}
             onClick={() => onCategorySelect(category.id)}
-            className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full"
+            className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full overflow-hidden"
           >
-            <div className={`${category.color} h-2 rounded-t-lg`}></div>
+            <div className={`${category.color} h-2`}></div>
+
+            {/* Image du parcours si disponible */}
+            {category.image_url && (
+              <div className="relative h-48 overflow-hidden">
+                <img
+                  src={category.image_url}
+                  alt={getTranslatedField(category, 'name', language)}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+              </div>
+            )}
 
             <div className="p-6 flex flex-col flex-1">
               {/* En-tête avec icône et nombre de modules */}

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Edit2, Plus, Trash2, Save, X, AlertCircle, ArrowUpDown } from 'lucide-react';
 import { ModuleCategory } from '../../lib/supabase';
 import { CategoryService } from '../../services/categoryService';
 import { ModuleOrderManager } from './ModuleOrderManager';
 import { RichTextEditor } from './RichTextEditor';
+import { ImageUpload } from './ImageUpload';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getTranslatedField } from '../../utils/translation';
 
@@ -23,7 +24,8 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
     name: '',
     description: '',
     icon: '',
-    color: 'bg-gray-500'
+    color: 'bg-gray-500',
+    image_url: ''
   });
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -118,14 +120,32 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
   };
 
   const handleUpdateCategory = (categoryId: string, field: keyof ModuleCategory, value: string) => {
-    setCategories(cats => 
-      cats.map(cat => 
-        cat.id === categoryId 
+    setCategories(cats =>
+      cats.map(cat =>
+        cat.id === categoryId
           ? { ...cat, [field]: value }
           : cat
       )
     );
   };
+
+  // Handlers for new category image upload
+  const handleNewCategoryImageUploaded = useCallback((url: string) => {
+    setNewCategory(prev => ({ ...prev, image_url: url }));
+  }, []);
+
+  const handleNewCategoryImageRemove = useCallback(() => {
+    setNewCategory(prev => ({ ...prev, image_url: '' }));
+  }, []);
+
+  // Handlers for editing category image upload
+  const handleEditCategoryImageUploaded = useCallback((categoryId: string, url: string) => {
+    handleUpdateCategory(categoryId, 'image_url', url);
+  }, []);
+
+  const handleEditCategoryImageRemove = useCallback((categoryId: string) => {
+    handleUpdateCategory(categoryId, 'image_url', '');
+  }, []);
 
   const handleAddCategory = async () => {
     if (!newCategory.name || !newCategory.description || !newCategory.icon) {
@@ -340,7 +360,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                 </div>
               </>
             )}
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Couleur
@@ -357,6 +377,21 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Image Upload Section */}
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Image du parcours (optionnel)
+            </label>
+            <ImageUpload
+              onImageUploaded={handleNewCategoryImageUploaded}
+              currentImageUrl={newCategory.image_url || ''}
+              onRemoveImage={handleNewCategoryImageRemove}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Cette image sera affichée sur la carte du parcours de formation
+            </p>
           </div>
           
           <div className="flex justify-end gap-3 mt-6">
@@ -489,7 +524,7 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Couleur
@@ -507,7 +542,22 @@ export function CategoryManagement({ onBack }: CategoryManagementProps) {
                       </select>
                     </div>
                   </div>
-                  
+
+                  {/* Image Upload Section for Edit Mode */}
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Image du parcours (optionnel)
+                    </label>
+                    <ImageUpload
+                      onImageUploaded={(url) => handleEditCategoryImageUploaded(category.id, url)}
+                      currentImageUrl={category.image_url || ''}
+                      onRemoveImage={() => handleEditCategoryImageRemove(category.id)}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Cette image sera affichée sur la carte du parcours de formation
+                    </p>
+                  </div>
+
                   <div className="flex justify-end gap-3">
                     <button
                       onClick={() => handleCancelEdit(category.id)}
