@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, Users, BookOpen, TrendingUp, BarChart3, Settings, UserCheck, Database, Grid3X3, QrCode, FileQuestion } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Users, BookOpen, TrendingUp, BarChart3, Settings, UserCheck, Database, Grid3X3, QrCode, FileQuestion, ClipboardList } from 'lucide-react';
 import { supabase, Module, TrainingPath } from '../../lib/supabase';
 import { ModuleForm } from './ModuleForm';
 import { ProgressTracking } from './ProgressTracking';
+import { EmployeeProgressTracking } from './EmployeeProgressTracking';
 import { UserManagement } from './UserManagement';
 import { Analytics } from './Analytics';
 import { SystemSettings } from './SystemSettings';
@@ -19,7 +20,7 @@ export function AdminDashboard() {
   const [modules, setModules] = useState<Module[]>([]);
   const [categories, setCategories] = useState<TrainingPath[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'modules' | 'progress' | 'form' | 'users' | 'analytics' | 'settings' | 'training-paths' | 'qr-codes' | 'quiz-editor'>('modules');
+  const [currentView, setCurrentView] = useState<'modules' | 'progress' | 'employee-progress' | 'form' | 'users' | 'analytics' | 'settings' | 'training-paths' | 'qr-codes' | 'quiz-editor'>('modules');
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [stats, setStats] = useState({
     totalModules: 0,
@@ -193,6 +194,12 @@ export function AdminDashboard() {
     );
   }
 
+  if (currentView === 'employee-progress') {
+    return (
+      <EmployeeProgressTracking onBack={() => setCurrentView('modules')} />
+    );
+  }
+
   if (currentView === 'users') {
     return (
       <UserManagement onBack={() => setCurrentView('modules')} />
@@ -241,6 +248,14 @@ export function AdminDashboard() {
           >
             <TrendingUp className="h-4 w-4" />
             Suivi
+          </button>
+          <button
+            onClick={() => setCurrentView('employee-progress')}
+            className="bg-cyan-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-cyan-600 transition-colors flex items-center gap-2 text-sm sm:text-base"
+          >
+            <ClipboardList className="h-4 w-4" />
+            <span className="hidden sm:inline">Progression Employés</span>
+            <span className="sm:hidden">Progression</span>
           </button>
           <button
             onClick={() => setCurrentView('users')}
