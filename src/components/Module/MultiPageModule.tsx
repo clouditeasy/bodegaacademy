@@ -416,7 +416,47 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
         )}
 
         {/* Content */}
-        <div className="mb-6">
+        <div className="mb-6 text-gray-700 text-sm sm:text-base">
+          <style>{`
+            .prose img {
+              max-width: 100% !important;
+              height: auto !important;
+              margin: 1.5rem 0 !important;
+              border-radius: 0.5rem !important;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            }
+            .prose ul, .prose ol {
+              margin-left: 1.5rem !important;
+              margin-top: 1rem !important;
+              margin-bottom: 1rem !important;
+            }
+            .prose li {
+              margin-top: 0.5rem !important;
+              margin-bottom: 0.5rem !important;
+            }
+            .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+              margin-top: 1.5rem !important;
+              margin-bottom: 1rem !important;
+              font-weight: 700 !important;
+            }
+            .prose p {
+              margin-top: 1rem !important;
+              margin-bottom: 1rem !important;
+            }
+            .prose strong {
+              font-weight: 600 !important;
+            }
+            .prose a {
+              color: #ea580c !important;
+              text-decoration: underline !important;
+            }
+            .prose blockquote {
+              border-left: 4px solid #ea580c !important;
+              padding-left: 1rem !important;
+              font-style: italic !important;
+              margin: 1.5rem 0 !important;
+            }
+          `}</style>
           {renderContent(getTranslatedField(currentPage, 'content', language))}
         </div>
 
