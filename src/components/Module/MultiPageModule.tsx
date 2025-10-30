@@ -9,6 +9,7 @@ import { azureStorage } from '../../lib/azureStorage';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getTranslatedField } from '../../utils/translation';
+import 'react-quill/dist/quill.snow.css';
 
 interface MultiPageModuleProps {
   module: Module;
@@ -416,45 +417,97 @@ export function MultiPageModule({ module, onBack }: MultiPageModuleProps) {
         )}
 
         {/* Content */}
-        <div className="mb-6 text-gray-700 text-sm sm:text-base">
+        <div className="mb-6 text-gray-700 text-sm sm:text-base ql-editor">
           <style>{`
-            .prose img {
-              max-width: 100% !important;
-              height: auto !important;
-              margin: 1.5rem 0 !important;
-              border-radius: 0.5rem !important;
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            /* Quill Editor Styles - Match backoffice exactly */
+            .ql-editor {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+              font-size: 16px;
+              line-height: 1.6;
+              color: #374151;
+              padding: 0 !important;
             }
-            .prose ul, .prose ol {
-              margin-left: 1.5rem !important;
-              margin-top: 1rem !important;
+
+            .ql-editor h1 {
+              color: #1f2937 !important;
+              font-size: 2rem !important;
+              font-weight: bold !important;
+              margin: 1.5rem 0 1rem 0 !important;
+            }
+
+            .ql-editor h2 {
+              color: #374151 !important;
+              font-size: 1.5rem !important;
+              font-weight: 600 !important;
+              margin: 1.25rem 0 0.75rem 0 !important;
+            }
+
+            .ql-editor h3 {
+              color: #4b5563 !important;
+              font-size: 1.25rem !important;
+              font-weight: 600 !important;
+              margin: 1rem 0 0.5rem 0 !important;
+            }
+
+            .ql-editor p {
               margin-bottom: 1rem !important;
             }
-            .prose li {
-              margin-top: 0.5rem !important;
+
+            .ql-editor ul, .ql-editor ol {
+              margin-bottom: 1rem !important;
+              padding-left: 2rem !important;
+            }
+
+            .ql-editor li {
               margin-bottom: 0.5rem !important;
             }
-            .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
-              margin-top: 1.5rem !important;
-              margin-bottom: 1rem !important;
-              font-weight: 700 !important;
+
+            .ql-editor img {
+              max-width: 100% !important;
+              height: auto !important;
+              margin: 1rem 0 !important;
+              border-radius: 8px !important;
             }
-            .prose p {
-              margin-top: 1rem !important;
-              margin-bottom: 1rem !important;
-            }
-            .prose strong {
+
+            .ql-editor strong {
               font-weight: 600 !important;
             }
-            .prose a {
+
+            .ql-editor em {
+              font-style: italic !important;
+            }
+
+            .ql-editor u {
+              text-decoration: underline !important;
+            }
+
+            .ql-editor s {
+              text-decoration: line-through !important;
+            }
+
+            .ql-editor a {
               color: #ea580c !important;
               text-decoration: underline !important;
             }
-            .prose blockquote {
-              border-left: 4px solid #ea580c !important;
+
+            .ql-editor blockquote {
+              border-left: 4px solid #d1d5db !important;
               padding-left: 1rem !important;
-              font-style: italic !important;
-              margin: 1.5rem 0 !important;
+              margin: 1rem 0 !important;
+              color: #6b7280 !important;
+            }
+
+            /* Quill alignment classes */
+            .ql-align-center {
+              text-align: center !important;
+            }
+
+            .ql-align-right {
+              text-align: right !important;
+            }
+
+            .ql-align-justify {
+              text-align: justify !important;
             }
           `}</style>
           {renderContent(getTranslatedField(currentPage, 'content', language))}
