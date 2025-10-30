@@ -78,11 +78,15 @@ export function EmployeeProgressTracking({ onBack }: EmployeeProgressTrackingPro
         const moduleProgress: ModuleProgressDetail[] = (modulesData || []).map(module => {
           const progress = userProgress.find(p => p.module_id === module.id);
 
+          // Vérifier si le module a un quiz (single-page ou multi-page)
+          const hasQuiz = (module.quiz_questions && module.quiz_questions.length > 0) ||
+                          (module.pages && module.pages.some((p: any) => p.has_quiz && p.quiz_questions?.length > 0));
+
           return {
             module,
             progress,
             status: progress?.status || 'not_started',
-            score: progress?.score,
+            score: hasQuiz ? progress?.score : undefined,
             completedAt: progress?.completed_at,
             attempts: progress?.attempts || 0
           };
@@ -91,8 +95,15 @@ export function EmployeeProgressTracking({ onBack }: EmployeeProgressTrackingPro
         const completedModules = moduleProgress.filter(m => m.status === 'completed').length;
         const inProgressModules = moduleProgress.filter(m => m.status === 'in_progress').length;
 
+        // Calculer le score moyen uniquement sur les modules qui ont des quiz ET un score
         const scores = moduleProgress
-          .filter(m => m.score !== undefined && m.score !== null)
+          .filter(m => {
+            // Vérifier si le module a un quiz
+            const hasQuiz = (m.module.quiz_questions && m.module.quiz_questions.length > 0) ||
+                            (m.module.pages && m.module.pages.some((p: any) => p.has_quiz && p.quiz_questions?.length > 0));
+            // Inclure seulement si le module a un quiz ET un score
+            return hasQuiz && m.score !== undefined && m.score !== null;
+          })
           .map(m => m.score!);
         const averageScore = scores.length > 0
           ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
@@ -312,9 +323,14 @@ export function EmployeeProgressTracking({ onBack }: EmployeeProgressTrackingPro
             <div>
               <p className="text-sm text-gray-600">Score Moyen</p>
               <p className="text-2xl font-bold text-gray-900">
-                {employees.length > 0
-                  ? Math.round(employees.reduce((sum, emp) => sum + emp.averageScore, 0) / employees.length)
-                  : 0}%
+                {(() => {
+                  // Calculer la moyenne uniquement des employés qui ont des scores
+                  const employeesWithScores = employees.filter(emp => emp.averageScore > 0);
+                  if (employeesWithScores.length > 0) {
+                    return Math.round(employeesWithScores.reduce((sum, emp) => sum + emp.averageScore, 0) / employeesWithScores.length) + '%';
+                  }
+                  return '-';
+                })()}
               </p>
             </div>
           </div>
@@ -443,8 +459,17 @@ export function EmployeeProgressTracking({ onBack }: EmployeeProgressTrackingPro
                           <p className="text-xs text-gray-600">En cours</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-purple-600">{employee.averageScore}%</p>
-                          <p className="text-xs text-gray-600">Score moyen</p>
+                          {employee.averageScore > 0 ? (
+                            <>
+                              <p className="text-2xl font-bold text-purple-600">{employee.averageScore}%</p>
+                              <p className="text-xs text-gray-600">Score moyen</p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm font-medium text-gray-500">-</p>
+                              <p className="text-xs text-gray-600">Pas de quiz</p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -494,12 +519,40 @@ export function EmployeeProgressTracking({ onBack }: EmployeeProgressTrackingPro
                           </div>
 
                           <div className="flex items-center gap-4 ml-4">
-                            {moduleProgress.score !== undefined && moduleProgress.score !== null && (
-                              <div className="text-center">
-                                <p className="text-lg font-bold text-gray-900">{moduleProgress.score}%</p>
-                                <p className="text-xs text-gray-600">Score</p>
-                              </div>
-                            )}
+                            {(() => {
+                              // Vérifier si le module a un quiz
+                              const hasQuiz = (moduleProgress.module.quiz_questions && moduleProgress.module.quiz_questions.length > 0) ||
+                                              (moduleProgress.module.pages && moduleProgress.module.pages.some((p: any) => p.has_quiz && p.quiz_questions?.length > 0));
+
+                              if (hasQuiz) {
+                                // Module avec quiz
+                                if (moduleProgress.score !== undefined && moduleProgress.score !== null) {
+                                  return (
+                                    <div className="text-center">
+                                      <p className="text-lg font-bold text-gray-900">{moduleProgress.score}%</p>
+                                      <p className="text-xs text-gray-600">Score</p>
+                                    </div>
+                                  );
+                                } else if (moduleProgress.status === 'completed') {
+                                  // Complété mais pas de score (cas rare)
+                                  return (
+                                    <div className="text-center">
+                                      <p className="text-sm font-medium text-gray-500">-</p>
+                                      <p className="text-xs text-gray-600">Score</p>
+                                    </div>
+                                  );
+                                }
+                              } else {
+                                // Module sans quiz
+                                return (
+                                  <div className="text-center">
+                                    <p className="text-sm font-medium text-gray-500">-</p>
+                                    <p className="text-xs text-gray-600">Pas de quiz</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                             {moduleProgress.attempts > 0 && (
                               <div className="text-center">
                                 <p className="text-lg font-bold text-gray-900">{moduleProgress.attempts}</p>
